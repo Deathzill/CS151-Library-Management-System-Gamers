@@ -1,4 +1,4 @@
-[LibraryStateDiagram] - This file contains a state diagram of our project denoting the behavior of our system with users.
-[LibraryClassDiagram] - This file contains a class diagram which, will provide a model structure of our programining code.
-[LibrarySqeuenceDiagram] - This file contains sequence diagram which provides an explaination as to how operations are carried out by different objects.
-[LibraryUseCaseDiagram] - This file contains a use case diagram which identifies the interactions of the system and its users. 
+[LibraryStateDiagram](https://github.com/Deathzill/CS151-Library-Management-System-Gamers/blob/main/diagrams/LibraryStateDiagram.png) - This file contains a state diagram of our project denoting the behavior of our system with users.
+[LibraryClassDiagram](https://github.com/Deathzill/CS151-Library-Management-System-Gamers/blob/main/diagrams/LibraryClassDiagram.png) - This file contains a class diagram which, will provide a model structure of our programming code.
+[LibrarySequenceDiagram](https://github.com/Deathzill/CS151-Library-Management-System-Gamers/blob/main/diagrams/LibrarySequenceDiagram.png) - This file contains a sequence diagram which provides an explanation as to how operations are carried out by different objects.
+[LibraryUseCaseDiagram](https://github.com/Deathzill/CS151-Library-Management-System-Gamers/blob/main/diagrams/LibraryUseCaseDiagram.png) - This file contains a use case diagram that identifies the interactions of the system and its users. 
