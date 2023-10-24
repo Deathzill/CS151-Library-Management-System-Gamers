@@ -35,9 +35,9 @@ public class Notification {
         this.dateSent = dateSent;
     }
 
-    public void sendNotification(){
+    //public void sendNotification(){
         //This is the same case as the login() and logout() methods in the User class. Refer to them
-    }
+    //}
 
 
 }

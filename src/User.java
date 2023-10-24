@@ -8,7 +8,7 @@ public class User implements Searchable{
     private String password;
     private Date dateJoined;
     private boolean logged;
-    private Database data; //I feel that we should create the database in main or something and then put the database object
+    private Tables data; //I feel that we should create the database in main or something and then put the database object
                            //into the User object for us to do search operations. Either we do it this way or we can pass the DataBase
                            //object to the search method everytime we use it. That is up to you
 
@@ -60,11 +60,11 @@ public class User implements Searchable{
         this.dateJoined = dateJoined;
     }
 
-    public DataBase getData(){
+    public Tables getData(){
         return data;
     }
 
-    public void setData(DataBase data){
+    public void setData(Tables data){
         this.data = data;
     }
 
