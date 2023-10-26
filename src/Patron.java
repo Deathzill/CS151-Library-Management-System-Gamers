@@ -1,21 +1,47 @@
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 public class Patron extends User{
-    private String libraryCardID;
     private List<Book> borrowedBooks;
     private static final int maxBookLimit = 5;
     private List<Book> overdueBooks;
 
-    public Patron(String userID, String name, String email, String password, Date dateJoined, String libraryCardID) {
+    public Patron(String userID, String name, String email, String password, Date dateJoined) {
         super(userID, name, email, password, dateJoined);
-        this.libraryCardID = libraryCardID;
+        borrowedBooks = new ArrayList<>();
+        overdueBooks = new ArrayList<Book>();
     }
 
-    public void borrowBook(int bookIndex){
+    public void borrowBook(int ISBN){
+        data.checkOutBook(ISBN); //Use the Book.CheckOut() method for this in Table
 
     }
 
-    //Will move on from here after we figure out the issues presented in the Searchable interface
+    public void returnBook(int ISBN){
+        data.checkInBook(ISBN); //Use the Book.CheckIn() method for this in Table
+    }
+
+    public List<Book> getOverdueBooks(){
+
+        Date currentDate = new Date();
+
+        for(int i = 0; i < borrowedBooks.size(); i++){
+            if(currentDate.compareTo(borrowedBooks.get(i).getDueDate()) > 0){
+                overdueBooks.add(borrowedBooks.get(i));
+            }
+        }
+
+        return overdueBooks;
+    }
+
+    public boolean hasOverdueBooks(){
+
+        if(overdueBooks.isEmpty()){
+            return false;
+        }
+
+        return true;
+    }
 
 }

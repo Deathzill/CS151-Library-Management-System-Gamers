@@ -10,7 +10,7 @@ public class Book implements Borrowable{
     private BookStatus status;
     private String title;
     private String author;
-    private String ISBN;
+    private int ISBN;
     private String searchBook = null;
     private boolean isCheckedOut;
     private Date dueDate;
@@ -19,7 +19,7 @@ public class Book implements Borrowable{
         this.searchBook = searchBook;
     }
 
-    public Book(BookStatus status, String title, String author, String ISBN, boolean isCheckedOut, Date dueDate) {
+    public Book(BookStatus status, String title, String author, int ISBN, boolean isCheckedOut, Date dueDate) {
         this.status = status;
         this.title = title;
         this.author = author;
@@ -52,11 +52,11 @@ public class Book implements Borrowable{
         this.author = author;
     }
 
-    public String getISBN() {
+    public int getISBN() {
         return ISBN;
     }
 
-    public void setISBN(String ISBN) {
+    public void setISBN(int ISBN) {
         this.ISBN = ISBN;
     }
 

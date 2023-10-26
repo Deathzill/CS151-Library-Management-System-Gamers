@@ -2,17 +2,15 @@ import java.util.Date;
 import java.util.List;
 
 public class User implements Searchable{
-    private String userID;
+    private int userID;
     private String name;
     private String email;
     private String password;
     private Date dateJoined;
     private boolean logged;
-    private Tables data; //I feel that we should create the database in main or something and then put the database object
-                           //into the User object for us to do search operations. Either we do it this way or we can pass the DataBase
-                           //object to the search method everytime we use it. That is up to you
+    private Tables data;
 
-    public User(String userID, String name, String email, String password, Date dateJoined) {
+    public User(int userID, String name, String email, String password, Date dateJoined) {
         this.userID = userID;
         this.name = name;
         this.email = email;
@@ -20,11 +18,11 @@ public class User implements Searchable{
         this.dateJoined = dateJoined;
     }
 
-    public String getUserID() {
+    public int getUserID() {
         return userID;
     }
 
-    public void setUserID(String userID) {
+    public void setUserID(int userID) {
         this.userID = userID;
     }
 
@@ -68,6 +66,8 @@ public class User implements Searchable{
         this.data = data;
     }
 
+    /*
+    -------------Left this for future reference if needed
     public boolean login(){
         //logged = true;
 
@@ -91,12 +91,18 @@ public class User implements Searchable{
         //This method had no parameters so im a bit confused but I'm guessing that it was a typo.
         //Either way, will be a simple method to implement later on.
 
+    }*/
+
+    public boolean searchByTitle(String title) {
+        return data.searchBookByTitle(title);
     }
 
-    public Book searchByTitle(String title) { //change. Refer to Searchable interface
-
-        data.searchBookByTitle(title);
-
-        return null;
+    public boolean searchByAuthor(String author) {
+        return data.searchBookByAuthor(author);
     }
+
+    public boolean searchByISBN(String ISBN){
+        return data.searchBookByISBN(ISBN);
+    }
+
 }
