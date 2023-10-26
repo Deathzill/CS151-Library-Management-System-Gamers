@@ -1,5 +1,5 @@
 public interface Searchable {
     public boolean searchByTitle(String title);
     public boolean searchByAuthor(String author);
-    public boolean searchByISBN(String ISBN);
+    public boolean searchByISBN(int ISBN);
 }

@@ -101,7 +101,7 @@ public class User implements Searchable{
         return data.searchBookByAuthor(author);
     }
 
-    public boolean searchByISBN(String ISBN){
+    public boolean searchByISBN(int ISBN){
         return data.searchBookByISBN(ISBN);
     }
 
