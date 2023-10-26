@@ -7,7 +7,7 @@ public class Patron extends User{
     private static final int maxBookLimit = 5;
     private List<Book> overdueBooks;
 
-    public Patron(String userID, String name, String email, String password, Date dateJoined) {
+    public Patron(int userID, String name, String email, String password, Date dateJoined) {
         super(userID, name, email, password, dateJoined);
         borrowedBooks = new ArrayList<>();
         overdueBooks = new ArrayList<Book>();
@@ -15,7 +15,6 @@ public class Patron extends User{
 
     public void borrowBook(int ISBN){
         data.checkOutBook(ISBN); //Use the Book.CheckOut() method for this in Table
-
     }
 
     public void returnBook(int ISBN){
