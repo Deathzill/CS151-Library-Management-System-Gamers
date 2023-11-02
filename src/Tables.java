@@ -10,6 +10,10 @@ public class Tables {
         users = new HashMap<>();
     }
 
+    public void getUserType(){
+        //return what kind of user it is based on the ID
+    }
+
     // Method to add a Book
     public void dbAddBook(Book book) {
         books.put(book.getISBN(), book);
@@ -57,18 +61,21 @@ public class Tables {
 
 
     // Method to check out a book by ISBN
-    public void checkOutBook(int ISBN) {
-        Book book = books.get(ISBN);
+    public boolean checkOutBook(Book ISBN) {
+        Book book = books.get(ISBN.getISBN());
         if (book != null && book.getStatus() == Book.BookStatus.AVAILABLE) {
             book.checkOut();
+            return true;
         }
+        else return false;
     }
 
     // Method to check in a book by ISBN
-    public void checkInBook(int ISBN) {
-        Book book = books.get(ISBN);
+    public boolean checkInBook(Book book) {
         if (book != null && book.getStatus() == Book.BookStatus.CHECKED_OUT) {
             book.checkIn();
+            return true;
         }
+        else return false;
     }
 }
