@@ -9,15 +9,16 @@ public class Librarian extends User{
     }
 
     public void addBook(Book book){
-        data.dbAddBook(book); //need this implemented -> Munkh
+        this.getData().dbAddBook(book); // Using the getter method to access data
     }
 
+
     public void removeBook(Book book){
-        data.dbRemoveBook(book); //need this implemented -> Munkh
+        this.getData().dbRemoveBook(book); //need this implemented -> Munkh
     }
 
     public void removeUser(User user){
-        data.dbRemoveUser(user); //need this implemented -> Munkh
+        this.getData().dbRemoveUser(user); //need this implemented -> Munkh
     }
 
 }
