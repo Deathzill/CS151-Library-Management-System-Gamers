@@ -14,11 +14,11 @@ public class Patron extends User{
     }
 
     public void borrowBook(int ISBN){
-        data.checkOutBook(ISBN); //Use the Book.CheckOut() method for this in Table
+        getData().checkOutBook(ISBN); //Use the Book.CheckOut() method for this in Table
     }
 
     public void returnBook(int ISBN){
-        data.checkInBook(ISBN); //Use the Book.CheckIn() method for this in Table
+        getData().checkInBook(ISBN); //Use the Book.CheckIn() method for this in Table
     }
 
     public List<Book> getOverdueBooks(){
