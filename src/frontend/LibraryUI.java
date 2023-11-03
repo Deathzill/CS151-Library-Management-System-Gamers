@@ -4,26 +4,72 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Random;
 
 public class LibraryUI {
     private JFrame frame;
     private JPanel createdSignInPage;
     private JPanel createdSignUpPage;
-    private JPanel createdLoggedInPage;
     private JTextField usernameInput;
     private JPasswordField passwordInput;
     private CardLayout card;
     private JPanel cardContainer;
     private CardLayout usernameCard;
     private JPanel usernameScreen;
-    private String generatedUsername;
-    private JTextField newFirstName;
-    private JTextField newLastName;
-    private JTextField newEmail;
-    private JPasswordField newPassword;
+    private ArrayList<createdUser> userArray = new ArrayList<createdUser>(); //Storing the individual Users
+    private int signedInUserArrayIndex;
 
-    public LibraryUI(){
+    class createdUser{ //class to store user datatypes
+        private String generatedUsername;
+        private String userFirstName;
+        private String userLastName;
+        private String userEmail;
+        private String userPassword;
+
+        public String getGeneratedUsername() {
+            return generatedUsername;
+        }
+
+        public void setGeneratedUsername(String generatedUsername) {
+            this.generatedUsername = generatedUsername;
+        }
+
+        public String getUserFirstName() {
+            return userFirstName;
+        }
+
+        public void setUserFirstName(String userFirstName) {
+            this.userFirstName = userFirstName;
+        }
+
+        public String getUserLastName() {
+            return userLastName;
+        }
+
+        public void setUserLastName(String userLastName) {
+            this.userLastName = userLastName;
+        }
+
+        public String getUserEmail() {
+            return userEmail;
+        }
+
+        public void setUserEmail(String userEmail) {
+            this.userEmail = userEmail;
+        }
+
+        public String getUserPassword() {
+            return userPassword;
+        }
+
+        public void setUserPassword(String userPassword) {
+            this.userPassword = userPassword;
+        }
+    }
+
+
+    public LibraryUI(){ //create the different panels/screens
 
         frame = new JFrame("Social Network - Sign In Page");
         frame.setLayout(new BorderLayout());
@@ -31,23 +77,18 @@ public class LibraryUI {
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        //array = new String[5];
+        card = new CardLayout(); //creating cardlayout
+        cardContainer = new JPanel(card); //creating card container for the card layout
 
-        card = new CardLayout();
-        cardContainer = new JPanel(card);
-
-        createdSignInPage = this.createSignInPage();
-        createdSignUpPage = this.createSignUpPage();
+        createdSignInPage = this.createSignInPage(); //creating sign in page
+        createdSignUpPage = this.createSignUpPage(); //creating sign up page
 
         cardContainer.add(createdSignInPage, "signin");
         cardContainer.add(createdSignUpPage, "signUpPage");
-        //cardContainer.add(this.createdLoggedInPage, "loggedInPage");
 
         frame.add(cardContainer);
 
         frame.setVisible(true);
-
-        //cardContainer.add(this.createLoggedInScreen(), "loggedInPage");
 
     }
 
@@ -128,7 +169,7 @@ public class LibraryUI {
         myspaceLogo.setFont(new Font("Serof", Font.BOLD + Font.ITALIC, 40));
         myspaceLogo.setForeground(PURPLE);
 
-        JPanel loginWrapper = new JPanel();
+        JPanel loginWrapper = new JPanel(); //Wrapper panel to contain the login panel
         loginWrapper.setBackground(Color.WHITE);
         loginWrapper.setLayout(new GridBagLayout());
         loginWrapper.setPreferredSize(new Dimension(100, 100));
@@ -141,7 +182,7 @@ public class LibraryUI {
         loginWrapper.add(myspaceLogo, c);
         loginWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.WHITE, 2, true), BorderFactory.createLineBorder(Color.BLACK, 2, true)));
 
-        JPanel finalFrontPage = new JPanel();
+        JPanel finalFrontPage = new JPanel(); //A second wrapper panel for the first wrapper panel. Used to implement BorderLayout
         finalFrontPage.setBackground(Color.WHITE);
         finalFrontPage.setLayout(new BorderLayout());
         finalFrontPage.add(loginWrapper, BorderLayout.CENTER);
@@ -167,19 +208,25 @@ public class LibraryUI {
         signin.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 String out = null;
+                boolean loggedIn = false;
 
-                if(usernameInput.getText().equals(generatedUsername) && passwordInput.getText().equals(newPassword.getText())){
-                    card.show(cardContainer, "loggedInPage");
+                for(int i = 0; i < userArray.size(); i++){
+                    if(usernameInput.getText().equals(userArray.get(i).getGeneratedUsername()) && passwordInput.getText().equals(userArray.get(i).getUserPassword())){
+                        signedInUserArrayIndex = i;
+                        String page = "loggedInPage" + signedInUserArrayIndex;
+                        card.show(cardContainer, page); //Display the correct corresponding screen for the user
+                        usernameInput.setText(""); //clear text
+                        passwordInput.setText(""); //clear text
+
+                        text.setText("");
+                        loggedIn = true;
+                        break;
+                    }
                 }
-                else{
-                    if(usernameInput.getText().equals(generatedUsername)){
-                        out = "Incorrect Username...";
-                        text.setText(out);
-                    }
-                    else if(passwordInput.getText().equals(newPassword.getText())){
-                        out = "Incorrect Password...";
-                        text.setText(out);
-                    }
+
+                if(loggedIn == false){
+                    out = "Incorrect Login...";
+                    text.setText(out);
                 }
 
             }
@@ -188,7 +235,10 @@ public class LibraryUI {
         signup.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 card.show(cardContainer, "signUpPage");
-                usernameCard.show(usernameScreen, "signingUp");
+                usernameCard.show(usernameScreen, "signingUp"); //Display different screen
+                usernameInput.setText(""); //clear text
+                passwordInput.setText(""); //clear text
+                text.setText(""); //clear text
             }
         });
 
@@ -208,74 +258,75 @@ public class LibraryUI {
         JButton createAccount = new JButton("Create Account");
         JLabel passwordError = new JLabel();
 
-        newFirstName = new JTextField();
+        JTextField newFirstName = new JTextField();
         newFirstName.setPreferredSize(new Dimension(40, 20));
 
-        newLastName = new JTextField();
+        JTextField newLastName = new JTextField();
         newLastName.setPreferredSize(new Dimension(40, 20));
 
-        newEmail = new JTextField();
+        JTextField newEmail = new JTextField();
         newEmail.setPreferredSize(new Dimension(40, 20));
 
-        newPassword = new JPasswordField();
+        JTextField newPassword = new JPasswordField();
         newPassword.setPreferredSize(new Dimension(40, 20));
 
-        GridBagConstraints c = new GridBagConstraints();
+        GridBagConstraints constraints = new GridBagConstraints(); //Reference variable to add constraints to the GridBagLayout
 
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.ipady = 2;
-        c.gridwidth = 1;
-        c.weightx = 0.5;
-        c.weighty = 0.1;
-        c.gridx = 0;
-        c.gridy = 0;
-        signUpPage.add(firstName, c);
+        //Adding specific constraints for the GridBagLayout
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.ipady = 2;
+        constraints.gridwidth = 1;
+        constraints.weightx = 0.5;
+        constraints.weighty = 0.1;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        signUpPage.add(firstName, constraints);
 
-        c.gridy = 1;
-        signUpPage.add(lastName, c);
+        constraints.gridy = 1;
+        signUpPage.add(lastName, constraints);
 
-        c.gridx = 3;
-        c.gridy = 0;
-        signUpPage.add(newFirstName, c);
+        constraints.gridx = 3;
+        constraints.gridy = 0;
+        signUpPage.add(newFirstName, constraints);
 
-        c.gridy = 1;
-        signUpPage.add(newLastName, c);
+        constraints.gridy = 1;
+        signUpPage.add(newLastName, constraints);
 
-        c.gridy = 2;
-        c.gridx = 0;
-        signUpPage.add(email, c);
+        constraints.gridy = 2;
+        constraints.gridx = 0;
+        signUpPage.add(email, constraints);
 
-        c.gridx = 3;
-        signUpPage.add(newEmail, c);
+        constraints.gridx = 3;
+        signUpPage.add(newEmail, constraints);
 
-        c.gridy = 3;
-        signUpPage.add(newPassword, c);
+        constraints.gridy = 3;
+        signUpPage.add(newPassword, constraints);
 
-        c.gridx = 0;
-        signUpPage.add(createNewPassword, c);
+        constraints.gridx = 0;
+        signUpPage.add(createNewPassword, constraints);
 
-        c.gridy = 4;
-        c.gridx = 3;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        signUpPage.add(createAccount, c);
+        constraints.gridy = 4;
+        constraints.gridx = 3;
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        signUpPage.add(createAccount, constraints);
 
-        c.gridy = 5;
-        c.gridx = 0;
-        signUpPage.add(passwordError, c);
+        constraints.gridy = 5;
+        constraints.gridx = 0;
+        signUpPage.add(passwordError, constraints);
 
         JLabel signUpHeader = new JLabel("- - - - - - Sign Up - - - - - -");
         signUpHeader.setVisible(true);
-        JPanel signUpPageWrapper = new JPanel(new GridBagLayout());
+        JPanel signUpPageWrapper = new JPanel(new GridBagLayout()); //Wrapper for the sign up panel
         Color PURPLE = new Color(102, 0, 153);
         signUpPageWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
         signUpPageWrapper.setBackground(Color.LIGHT_GRAY);
 
-        usernameCard = new CardLayout();
+        usernameCard = new CardLayout(); //New cardLayout for the specific panel. Switches center panel between the signup page to the page that displays username
         usernameScreen = new JPanel(usernameCard);
         usernameScreen.add(signUpPage, "signingUp");
 
-        GridBagConstraints constraints = new GridBagConstraints();
+        constraints = new GridBagConstraints(); //New constraints
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.gridx = 0;
         constraints.gridy = 1;
@@ -287,7 +338,7 @@ public class LibraryUI {
         constraints.gridy = 0;
         signUpPageWrapper.add(signUpHeader);
 
-        JPanel loggedIn = new JPanel();
+        JPanel loggedIn = new JPanel(); //Logged in panel that'll display username
         loggedIn.setBackground(Color.WHITE);
         loggedIn.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, false), BorderFactory.createLineBorder(Color.WHITE, 2, true)));
         loggedIn.setLayout(new GridBagLayout());
@@ -320,10 +371,32 @@ public class LibraryUI {
                 try{
                     LibraryUI.checkPasswordRequirements(newPassword.getText());
                     signUpHeader.setVisible(false);
-                    generatedUsername = LibraryUI.createUsername(newFirstName.getText(), newLastName.getText());
-                    username.setText("Generated Username: " + generatedUsername);
+
+                    createdUser newUser = new createdUser();
+                    newUser.setGeneratedUsername(LibraryUI.createUsername(newFirstName.getText(), newLastName.getText()));
+                    newUser.setUserEmail(newEmail.getText());
+                    newUser.setUserFirstName(newFirstName.getText());
+                    newUser.setUserLastName(newLastName.getText());
+                    newUser.setUserPassword(newPassword.getText());
+
+                    newEmail.setText("");
+                    newFirstName.setText("");
+                    newLastName.setText("");
+                    newPassword.setText("");
+
+                    userArray.add(newUser); //Storing new user information
+
+                    username.setText("Generated Username: " + newUser.getGeneratedUsername());
                     usernameCard.show(usernameScreen, "loginUsername");
-                    cardContainer.add(LibraryUI.this.createLoggedInScreen(), "loggedInPage");
+
+                    String pageName = "loggedInPage" + (userArray.size() - 1);
+                    signedInUserArrayIndex = (userArray.size() - 1);
+                    JPanel logginPanel = LibraryUI.this.createLoggedInScreen(); //Generating screen with user info
+
+                    cardContainer.add(logginPanel, pageName); //Adding screen with user info
+
+                    passwordError.setText("");
+
                 } catch(UpperCaseCharacterMissing error){
                     passwordError.setText(error.getMessage());
                 } catch(LowerCaseCharacterMissing error){
@@ -351,14 +424,15 @@ public class LibraryUI {
         loggedInPanel.setPreferredSize(new Dimension(400, 200));
         loggedInPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
 
+        //Setting user information
         JLabel displayUsername = new JLabel();
-        displayUsername.setText("User: " + generatedUsername);
+        displayUsername.setText("User: " + userArray.get(signedInUserArrayIndex).getGeneratedUsername());
         displayUsername.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayFirstName = new JLabel("First Name: " + newFirstName.getText());
+        JLabel displayFirstName = new JLabel("First Name: " + userArray.get(signedInUserArrayIndex).getUserFirstName());
         displayFirstName.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayLastName = new JLabel("Last Name: " + newLastName.getText());
+        JLabel displayLastName = new JLabel("Last Name: " + userArray.get(signedInUserArrayIndex).getUserLastName());
         displayLastName.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayEmail = new JLabel("Email: " + newEmail.getText());
+        JLabel displayEmail = new JLabel("Email: " + userArray.get(signedInUserArrayIndex).getUserEmail());
         displayEmail.setHorizontalAlignment(SwingConstants.CENTER);
         JButton logoutButton1 = new JButton("Logout");
 
@@ -381,7 +455,7 @@ public class LibraryUI {
         constraints.gridy = 4;
         loggedInPanel.add(logoutButton1, constraints);
 
-        JPanel loggedInPageWrapper = new JPanel(new GridBagLayout());
+        JPanel loggedInPageWrapper = new JPanel(new GridBagLayout()); //Wrapper panel for the loggedInPanel
         loggedInPageWrapper.setBackground(Color.lightGray);
         Color PURPLE = new Color(102, 0, 153);
         loggedInPageWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
@@ -398,7 +472,7 @@ public class LibraryUI {
         return loggedInPageWrapper;
     }
 
-    public static String createUsername(String firstName, String lastName){
+    public static String createUsername(String firstName, String lastName){ //Method to create the user's username
         Random random = new Random();
         StringBuilder username = new StringBuilder();
 
@@ -410,7 +484,7 @@ public class LibraryUI {
         return username.toString();
     }
 
-    public static boolean checkPasswordRequirements(String password) throws PasswordException {
+    public static boolean checkPasswordRequirements(String password) throws PasswordException{ //Method to check if password requirements are met
         boolean upperCase = false;
         boolean lowerCase = false;
         boolean characterLimit = false;
@@ -459,6 +533,6 @@ public class LibraryUI {
 
 
     public static void main(String[] args) {
-        new LibraryUI();
+        new LibraryUI(); //Create application
     }
 }
