@@ -1,3 +1,5 @@
+package backend;
+
 public interface Searchable {
     public boolean searchByTitle(String title);
     public boolean searchByAuthor(String author);

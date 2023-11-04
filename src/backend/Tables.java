@@ -1,9 +1,11 @@
+package backend;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class Tables {
-    private Map<Integer, Book> books; // Using ISBN as the key for the Book map
-    private Map<Integer, User> users; // Using userID as the key for the User map
+    private Map<Integer, Book> books; // Using ISBN as the key for the backend.Book map
+    private Map<Integer, User> users; // Using userID as the key for the backend.User map
 
     public Tables() {
         books = new HashMap<>();
@@ -14,49 +16,65 @@ public class Tables {
         //return what kind of user it is based on the ID
     }
 
-    // Method to add a Book
+    public User getUser(int userID){
+        return users.get(userID);
+    }
+
+    public Map<Integer, Book> getBooks() {
+        return books;
+    }
+
+    public Map<Integer, User> getUsers() {
+        return users;
+    }
+
+    // Method to add a backend.Book
     public void dbAddBook(Book book) {
         books.put(book.getISBN(), book);
     }
 
-    // Method to remove a Book by ISBN
+    // Method to remove a backend.Book by ISBN
     public void dbRemoveBook(Book book) {
         books.remove(book.getISBN());
     }
 
-    // Method to add a User
+    // Method to add a backend.User
     public void dbAddUser(User user) {
         users.put(user.getUserID(), user);
     }
 
-    // Method to remove a User by userID
+    // Method to remove a backend.User by userID
     public void dbRemoveUser(User user) {
         users.remove(user.getUserID());
     }
 
-    // Search for a Book by Title
+    // Search for a backend.Book by Title
     public boolean searchBookByTitle(String title) {
         for (Book book : books.values()) {
             if (book.getTitle().equals(title)) {
-                return true; // Book found
+                return true; // backend.Book found
             }
         }
-        return false; // Book not found
+        return false; // backend.Book not found
     }
 
-    // Search for a Book by Author
+    // Search for a backend.Book by Author
     public boolean searchBookByAuthor(String author) {
         for (Book book : books.values()) {
             if (book.getAuthor().equals(author)) {
-                return true; // Book found
+                return true; // backend.Book found
             }
         }
-        return false; // Book not found
+        return false; // backend.Book not found
     }
 
-    // Search for a Book by ISBN
+    // Search for a backend.Book by ISBN
     public boolean searchBookByISBN(int ISBN) {
         return books.containsKey(ISBN); // Returns true if the ISBN exists in the map, false otherwise
+    }
+
+    public boolean isCheckedOut(int ISBN){
+        return books.get(ISBN).isCheckedOut();
     }
 
 
@@ -71,7 +89,8 @@ public class Tables {
     }
 
     // Method to check in a book by ISBN
-    public boolean checkInBook(Book book) {
+    public boolean checkInBook(Book ISBN) {
+        Book book = books.get(ISBN.getISBN());
         if (book != null && book.getStatus() == Book.BookStatus.CHECKED_OUT) {
             book.checkIn();
             return true;

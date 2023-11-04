@@ -1,9 +1,11 @@
+package backend;
+
 import java.util.Calendar;
 import java.util.Date;
 
 public class Book implements Borrowable{
 
-    enum BookStatus{
+    public enum BookStatus{
         AVAILABLE, CHECKED_OUT, LOST, DAMAGED
     }
 
@@ -15,8 +17,8 @@ public class Book implements Borrowable{
     private boolean isCheckedOut;
     private Date dueDate;
 
-    public Book(String searchBook){
-        this.searchBook = searchBook;
+    public Book(int ISBN){
+        this.ISBN = ISBN;
     }
 
     public Book(BookStatus status, String title, String author, int ISBN, boolean isCheckedOut, Date dueDate) {
