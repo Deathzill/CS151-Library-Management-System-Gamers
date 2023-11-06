@@ -1,8 +1,4 @@
 package frontend;
-//This is the change
-//This is the change 2
-//This is the change 3
-
 
 import backend.Patron;
 import backend.Tables;
@@ -181,27 +177,31 @@ public class LibraryUI {
             public void actionPerformed(ActionEvent e) {
                 String out = null;
                 boolean loggedIn = false;
+                try {
+                    if (libraryDataBase.getUser(Integer.parseInt(usernameInput.getText())) != null) { //Checking if login is correct
+                        backend.User user = libraryDataBase.getUser(Integer.parseInt(usernameInput.getText()));
 
-                if(libraryDataBase.getUser(Integer.parseInt(usernameInput.getText())) != null){ //Checking if login is correct
-                    backend.User user = libraryDataBase.getUser(Integer.parseInt(usernameInput.getText()));
+                        if (user.getPassword().equals(passwordInput.getText())) {
+                            String page = "loggedInPage" + user.getUserID();
+                            card.show(cardContainer, page);
+                            currentUserID = Integer.parseInt(usernameInput.getText());
 
-                    if(user.getPassword().equals(passwordInput.getText())){
-                        String page = "loggedInPage" + user.getUserID();
-                        card.show(cardContainer, page);
-                        currentUserID = Integer.parseInt(usernameInput.getText());
-
-                        usernameInput.setText(""); //clear text
-                        passwordInput.setText(""); //clear text
-                        text.setText("");
-                        loggedIn = true;
+                            usernameInput.setText(""); //clear text
+                            passwordInput.setText(""); //clear text
+                            text.setText("");
+                            loggedIn = true;
+                        }
                     }
-                }
 
-                if(loggedIn == false){
-                    out = "Incorrect Login...";
+                    if(loggedIn == false) {
+                        out = "Incorrect Login...";
+                        text.setText(out);
+                    }
+                //Fixes if username is empty or non-numerical
+                } catch(NumberFormatException ex){
+                    out = "Input is empty or non-numerical...";
                     text.setText(out);
                 }
-
             }
         });
 
@@ -230,6 +230,7 @@ public class LibraryUI {
         JLabel createNewPassword = new JLabel("Enter Password:");
         JButton createAccount = new JButton("Create Account");
         JLabel passwordError = new JLabel();
+        JLabel emailError = new JLabel();
 
         JTextField newFirstName = new JTextField();
         newFirstName.setPreferredSize(new Dimension(40, 20));
@@ -293,6 +294,10 @@ public class LibraryUI {
         constraints.gridx = 0;
         signUpPage.add(passwordError, constraints);
 
+        constraints.gridy = 6;
+        constraints.gridx = 0;
+        signUpPage.add(emailError, constraints);
+
         JLabel signUpHeader = new JLabel("- - - - - - Sign Up - - - - - -");
         signUpHeader.setVisible(true);
         JPanel signUpPageWrapper = new JPanel(new GridBagLayout()); //Wrapper for the sign up panel
@@ -348,6 +353,7 @@ public class LibraryUI {
 
                 try{
                     LibraryUI.checkPasswordRequirements(newPassword.getText());
+                    LibraryUI.checkEmailRequirements(newEmail.getText());
                     signUpHeader.setVisible(false);
                     String pageName;
 
@@ -401,6 +407,12 @@ public class LibraryUI {
                     passwordError.setText(error.getMessage());
                 } catch(PasswordException error){
                     passwordError.setText(error.getMessage());
+                } catch(AtSignMissingException error){
+                    emailError.setText(error.getMessage());
+                } catch(PeriodMissingException error){
+                    emailError.setText(error.getMessage());
+                } catch(EmailException error){
+                    emailError.setText(error.getMessage());
                 }
 
             }
@@ -484,7 +496,25 @@ public class LibraryUI {
 
         return Integer.parseInt(username.toString());
     }
-
+    public static boolean checkEmailRequirements(String email) throws EmailException{
+        boolean containsAtSign = false;
+        boolean containsPeriod = false;
+        for(int i=0; i<email.length(); i++) {
+            if (email.charAt(i) == '@') {
+                containsAtSign = true;
+            }
+            if (email.charAt(i) == '.') {
+                containsPeriod = true;
+            }
+        }
+        if(!containsAtSign){
+            throw new AtSignMissingException("Error - Email Missing '@' Sign");
+        }
+        if(!containsPeriod){
+            throw new PeriodMissingException("Error - Email Missing Period (.) Sign");
+        }
+        return true;
+    }
     public static boolean checkPasswordRequirements(String password) throws PasswordException{ //Method to check if password requirements are met
         boolean upperCase = false;
         boolean lowerCase = false;
@@ -858,7 +888,6 @@ public class LibraryUI {
 
 
     public static void main(String[] args) {
-
 
         new LibraryUI(); //Create application
     }
