@@ -394,6 +394,7 @@ public class LibraryUI {
                     cardContainer.add(logginPanel, pageName); //Adding screen with user info
 
                     passwordError.setText("");
+                    emailError.setText("");
 
                 } catch(UpperCaseCharacterMissing error){
                     passwordError.setText(error.getMessage());
