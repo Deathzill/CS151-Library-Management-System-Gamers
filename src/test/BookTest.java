@@ -28,5 +28,4 @@ public class BookTest {
         assertEquals(Book.BookStatus.AVAILABLE, book.getStatus());
     }
 
-    // Additional tests for getters and setters...
 }

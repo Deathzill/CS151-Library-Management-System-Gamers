@@ -1,5 +1,6 @@
 package frontend;
 
+import backend.Book;
 import backend.Patron;
 import backend.Tables;
 
@@ -973,10 +974,41 @@ public class LibraryUI {
         book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding2", "Hancock2" , 232141, false, null);
         libraryDataBase.dbAddBook(book);
 
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Great Gatsby", "F. Scott Fitzgerald", 978014118, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "To Kill a Mockingbird", "Harper Lee", 978006112, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "1984", "George Orwell", 978045152, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "Pride and Prejudice", "Jane Austen", 97806797, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "Moby-Dick", "Herman Melville", 97801424, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "War and Peace", "Leo Tolstoy", 97814008, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Catcher in the Rye", "J.D. Salinger", 976769488, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(Book.BookStatus.AVAILABLE, "The Grapes of Wrath", "John Steinbeck", 93039433, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "Crime and Punishment", "Fyodor Dostoevsky", 486415871, false, null);
+        libraryDataBase.dbAddBook(book);
+
+        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "Brave New World", "Aldous Huxley", 978006524, false, null);
+        libraryDataBase.dbAddBook(book);
+
+
         // Hardcoding users
         Date currentDate = new Date();
-        backend.User defaultPatron = new backend.Patron(1, "Default Patron", "patron@example.com", "!Password123", currentDate);
-        backend.User defaultLibrarian = new backend.Librarian(2, "Default Librarian", "librarian@example.com", "!Password456", currentDate, currentDate);
+        backend.User defaultPatron = new backend.Patron(1, "Default Patron", "patron@example.com", "Pass", currentDate);
+        backend.User defaultLibrarian = new backend.Librarian(2, "Default Librarian", "librarian@example.com", "Pass", currentDate, currentDate);
 
         libraryDataBase.dbAddUser(defaultPatron);
         libraryDataBase.dbAddUser(defaultLibrarian);

@@ -38,6 +38,4 @@ public class TablesTest {
         assertTrue(tables.searchBookByTitle("Test Book"));
         assertFalse(tables.searchBookByTitle("Nonexistent Book"));
     }
-
-    // Additional tests for removing books/users, searching by author/ISBN...
 }
