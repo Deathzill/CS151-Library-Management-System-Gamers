@@ -35,31 +35,40 @@ public class LibraryUI {
     private int currentUserID;
     private int runner = 0;
 
-    public LibraryUI(){ //create the different panels/screens
+    public LibraryUI() {
+        // Initialize cardContainer first
+        cardContainer = new JPanel(new CardLayout());
 
-        this.createDataBase();
+        // Retrieve the CardLayout instance from cardContainer
+        card = (CardLayout)(cardContainer.getLayout());
+
         frame = new JFrame("Social Network - Sign In Page");
         frame.setLayout(new BorderLayout());
         frame.setSize(900, 600);
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        card = new CardLayout(); //creating cardlayout
-        cardContainer = new JPanel(card); //creating card container for the card layout
-
+        // Add sign-in and sign-up pages first
         createdSignInPage = this.createSignInPage(); //creating sign in page
         createdSignUpPage = this.createSignUpPage(); //creating sign up page
 
         cardContainer.add(createdSignInPage, "signin");
         cardContainer.add(createdSignUpPage, "signUpPage");
+
+        // Now call createDataBase
+        this.createDataBase();
+
+        // Add other pages
         cardContainer.add(this.createSearchScreen(), "searchScreen");
         cardContainer.add(this.addBooksPage(), "addBook");
 
         frame.add(cardContainer);
-
         frame.setVisible(true);
 
+        // Set the sign-in page as the default visible panel
+        card.show(cardContainer, "signin");
     }
+
 
     public JPanel createSignInPage(){
         JLabel username = new JLabel();
@@ -178,10 +187,14 @@ public class LibraryUI {
                 String out = null;
                 boolean loggedIn = false;
                 try {
+                    System.out.println("outside logic");
                     if (libraryDataBase.getUser(Integer.parseInt(usernameInput.getText())) != null) { //Checking if login is correct
                         backend.User user = libraryDataBase.getUser(Integer.parseInt(usernameInput.getText()));
 
+                        System.out.println("user exists");
+
                         if (user.getPassword().equals(passwordInput.getText())) {
+                            System.out.println("pass logic");
                             String page = "loggedInPage" + user.getUserID();
                             card.show(cardContainer, page);
                             currentUserID = Integer.parseInt(usernameInput.getText());
@@ -490,6 +503,71 @@ public class LibraryUI {
         return loggedInPageWrapper;
     }
 
+    public JPanel createLoggedInScreen(backend.User user) {
+        JPanel loggedInPanel = new JPanel();
+        loggedInPanel.setBackground(Color.WHITE);
+        loggedInPanel.setLayout(new GridBagLayout());
+        loggedInPanel.setPreferredSize(new Dimension(400, 200));
+        loggedInPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
+
+        //Setting user information
+        JLabel displayUsername = new JLabel("User: " + user.getUserID());
+        displayUsername.setHorizontalAlignment(SwingConstants.CENTER);
+        JLabel displayFirstName = new JLabel("Name: " + user.getName());
+        displayFirstName.setHorizontalAlignment(SwingConstants.CENTER);
+        JLabel displayJoinDate = new JLabel("Join Date: " + user.getDateJoined());
+        displayJoinDate.setHorizontalAlignment(SwingConstants.CENTER);
+        JLabel displayEmail = new JLabel("Email: " + user.getEmail());
+        displayEmail.setHorizontalAlignment(SwingConstants.CENTER);
+        JButton next = new JButton("Next");
+
+        GridBagConstraints constraints = new GridBagConstraints();
+
+        constraints.ipady = 2;
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        loggedInPanel.add(displayUsername, constraints);
+
+        constraints.gridy = 1;
+        loggedInPanel.add(displayFirstName, constraints);
+
+        constraints.gridy = 2;
+        loggedInPanel.add(displayJoinDate, constraints);
+
+        constraints.gridy = 3;
+        loggedInPanel.add(displayEmail, constraints);
+
+        constraints.gridy = 4;
+        loggedInPanel.add(next, constraints);
+
+        JPanel loggedInPageWrapper = new JPanel(new GridBagLayout()); //Wrapper panel for the loggedInPanel
+        loggedInPageWrapper.setBackground(Color.lightGray);
+        Color PURPLE = new Color(102, 0, 153);
+        loggedInPageWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
+
+        loggedInPageWrapper.add(loggedInPanel);
+
+        next.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                String userType = user.getClass().getName();
+
+                if(userType.equals("backend.Librarian")){ //Setting different access levels for librarian/patron
+                    addBookButton.setVisible(true);
+                    card.show(cardContainer, "searchScreen");
+                }
+                else{
+                    addBookButton.setVisible(false);
+                    cardContainer.add(LibraryUI.this.createReturnBookScreen(), "returnScreen" + user.getUserID() + runner); //Creating new screen with return information
+                    card.show(cardContainer, "returnScreen" + user.getUserID() + runner); //runner used to help with the different screen IDs
+                    runner += 1;
+                }
+            }
+        });
+
+        return loggedInPageWrapper;
+    }
+
+
     public static int createUsername(){
         Random random = new Random();
         StringBuilder username = new StringBuilder();
@@ -778,19 +856,28 @@ public class LibraryUI {
 
         addBookButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                backend.Book book = new backend.Book(backend.Book.BookStatus.AVAILABLE, title.getText(), author.getText(), Integer.parseInt(isbn.getText()), false, null);
+                try {
+                    int isbnNumber = Integer.parseInt(isbn.getText()); // Try to parse the ISBN
+                    backend.Book book = new backend.Book(backend.Book.BookStatus.AVAILABLE, title.getText(), author.getText(), isbnNumber, false, null);
 
-                libraryDataBase.dbAddBook(book);
+                    libraryDataBase.dbAddBook(book);
 
-                tablemodel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())}); //Add new data to table
+                    tablemodel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())}); //Add new data to table
 
-                card.show(cardContainer, "searchScreen");
+                    card.show(cardContainer, "searchScreen");
 
-                title.setText("");
-                author.setText("");
-                isbn.setText("");
+                    title.setText("");
+                    author.setText("");
+                    isbn.setText("");
+                } catch (NumberFormatException ex) {
+                    // Display error message
+                    JOptionPane.showMessageDialog(frame, "Invalid ISBN", "Error", JOptionPane.ERROR_MESSAGE);
+                    // Optionally, you could also clear the isbn field or keep the erroneous input for correction
+                    isbn.setText("");
+                }
             }
         });
+
 
 
         return addBookPanelWrapper;
@@ -873,9 +960,10 @@ public class LibraryUI {
         return returnedBooksPanelWrapper;
     }
 
-    public void createDataBase(){ //Creating the database from here
+    public void createDataBase() { // Creating the database from here
         libraryDataBase = new Tables();
 
+        // Adding books
         backend.Book book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding", "Hancock" , 23214, false, null);
         libraryDataBase.dbAddBook(book);
 
@@ -885,6 +973,24 @@ public class LibraryUI {
         book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding2", "Hancock2" , 232141, false, null);
         libraryDataBase.dbAddBook(book);
 
+        // Hardcoding users
+        Date currentDate = new Date();
+        backend.User defaultPatron = new backend.Patron(1, "Default Patron", "patron@example.com", "!Password123", currentDate);
+        backend.User defaultLibrarian = new backend.Librarian(2, "Default Librarian", "librarian@example.com", "!Password456", currentDate, currentDate);
+
+        libraryDataBase.dbAddUser(defaultPatron);
+        libraryDataBase.dbAddUser(defaultLibrarian);
+
+        // Creating and adding loggedInPage for each hardcoded user
+        addLoggedInPageForUser(defaultPatron);
+        addLoggedInPageForUser(defaultLibrarian);
+    }
+
+    // Helper method to create and add a loggedInPage for a given user
+    private void addLoggedInPageForUser(backend.User user) {
+        JPanel loggedInPage = createLoggedInScreen(user);
+        String pageName = "loggedInPage" + user.getUserID();
+        cardContainer.add(loggedInPage, pageName);
     }
 
 
