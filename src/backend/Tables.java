@@ -12,8 +12,8 @@ public class Tables {
         users = new HashMap<>();
     }
 
-    public void getUserType(){
-        //return what kind of user it is based on the ID
+    public String getUserType(){ //return what type of User it is
+        return String.valueOf(users.getClass());
     }
 
     public User getUser(int userID){

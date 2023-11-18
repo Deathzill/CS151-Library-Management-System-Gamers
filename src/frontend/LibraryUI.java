@@ -71,6 +71,7 @@ public class LibraryUI {
 
 
     public JPanel createSignInPage(){
+        // Initialize components for the sign-in page
         JLabel username = new JLabel();
         username.setText("Username:");
         username.setBounds(50, 50, 20, 40);
@@ -82,20 +83,24 @@ public class LibraryUI {
         JLabel text = new JLabel();
         text.setBounds(100, 100, 100, 100);
 
+        // Text fields for user input
         usernameInput = new JTextField();
         usernameInput.setPreferredSize(new Dimension(40, 20));
 
         passwordInput = new JPasswordField();
         passwordInput.setPreferredSize(new Dimension(40, 20));
 
+        // Setup the panel for the login form
         JPanel loginPanel = new JPanel();
         loginPanel.setBackground(Color.WHITE);
         loginPanel.setPreferredSize(new Dimension(250, 150));
         loginPanel.setLayout(new GridBagLayout());
 
+        // Buttons for sign-in and sign-up actions
         JButton signin = new JButton("Sign In");
         JButton signup = new JButton("Sign Up");
 
+        // Layout constraints for components in the GridBagLayout
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 1;
@@ -138,8 +143,10 @@ public class LibraryUI {
         c.gridy = 3;
         loginPanel.add(text, c);
 
+        // Setting up borders for aesthetics
         loginPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
 
+        // Additional layout setup for branding and alignment
         c = new GridBagConstraints();
         Color PURPLE = new Color(102, 0, 153);
         JLabel myspaceLogo = new JLabel("Library Management");
@@ -182,42 +189,46 @@ public class LibraryUI {
         finalFrontPage.add(panel3,BorderLayout.NORTH);
         finalFrontPage.add(panel4,BorderLayout.SOUTH);
 
+        // Event listeners for sign-in
         signin.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String out = null;
-                boolean loggedIn = false;
+                String out = null; // Variable to hold the output message
+                boolean loggedIn = false; // Flag to track if the user successfully logged in
+
                 try {
-                    System.out.println("outside logic");
-                    if (libraryDataBase.getUser(Integer.parseInt(usernameInput.getText())) != null) { //Checking if login is correct
+                    // Attempt to retrieve the user from the database using the provided username
+                    if (libraryDataBase.getUser(Integer.parseInt(usernameInput.getText())) != null) {
                         backend.User user = libraryDataBase.getUser(Integer.parseInt(usernameInput.getText()));
-
-                        System.out.println("user exists");
-
+                        // If the user is found, compare the provided password with the one in the database
                         if (user.getPassword().equals(passwordInput.getText())) {
-                            System.out.println("pass logic");
+                            // If password matches, set up and display the user's logged-in page
                             String page = "loggedInPage" + user.getUserID();
                             card.show(cardContainer, page);
                             currentUserID = Integer.parseInt(usernameInput.getText());
 
-                            usernameInput.setText(""); //clear text
-                            passwordInput.setText(""); //clear text
+                            // Clear the text fields and reset the output message
+                            usernameInput.setText("");
+                            passwordInput.setText("");
                             text.setText("");
-                            loggedIn = true;
+                            loggedIn = true; // Set the flag as the user is successfully logged in
                         }
                     }
 
-                    if(loggedIn == false) {
+                    // If login was unsuccessful, display an error message
+                    if(!loggedIn) {
                         out = "Incorrect Login...";
                         text.setText(out);
                     }
-                //Fixes if username is empty or non-numerical
+                    // Handle the case where the username input is empty or not a number
                 } catch(NumberFormatException ex){
                     out = "Input is empty or non-numerical...";
                     text.setText(out);
                 }
             }
         });
+        ;
 
+        //eventListeners for sign up
         signup.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 card.show(cardContainer, "signUpPage");
@@ -232,11 +243,13 @@ public class LibraryUI {
     }
 
     public JPanel createSignUpPage(){
+        // Initialize the sign-up page panel with GridBagLayout for flexible component layout
         JPanel signUpPage = new JPanel(new GridBagLayout());
         signUpPage.setPreferredSize(new Dimension(400, 200));
         signUpPage.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
         signUpPage.setBackground(Color.WHITE);
 
+        // Labels and text fields for user input during sign up
         JLabel firstName = new JLabel("Enter First Name:");
         JLabel lastName = new JLabel("Enter Last Name:");
         JLabel email = new JLabel("Enter Email:");
@@ -292,6 +305,7 @@ public class LibraryUI {
         constraints.gridx = 0;
         signUpPage.add(createNewPassword, constraints);
 
+        // Checkbox for selecting if the account is for a librarian
         JCheckBox librarian = new JCheckBox("Check if Librarian Account");
         librarian.setBackground(Color.WHITE);
         constraints.gridy = 4;
@@ -361,54 +375,62 @@ public class LibraryUI {
 
         usernameScreen.add(loggedIn, "loginUsername");
 
+        // Event listener for the "Create Account" button
         createAccount.addActionListener(new ActionListener() {
+            // Event handler for the 'Create Account' button click
             public void actionPerformed(ActionEvent e){
 
                 try{
+                    // Validate the entered password and email requirements
                     LibraryUI.checkPasswordRequirements(newPassword.getText());
                     LibraryUI.checkEmailRequirements(newEmail.getText());
+
+                    // Hide the sign-up header upon successful account creation
                     signUpHeader.setVisible(false);
                     String pageName;
 
+                    // Determine the type of account to create based on the librarian checkbox
                     if(librarian.isSelected()){ //If Librarian, create librarian object. Else make Patron object
                         Date date = new Date();
                         backend.Librarian newUser = new backend.Librarian(LibraryUI.createUsername(),
                                 newFirstName.getText() + " " + newLastName.getText(), newEmail.getText(), newPassword.getText(), date, date);
 
-
+                        // Set up account details and add the new user to the database
                         currentUserID = newUser.getUserID();
                         pageName = "loggedInPage" + newUser.getUserID();
                         username.setText("Generated UserID: " + newUser.getUserID());
-
                         libraryDataBase.dbAddUser(newUser);
                     }
-                    else{
+                    else{  // If not selected, create a Patron account
                         Date date = new Date();
                         backend.Patron newUser = new backend.Patron(LibraryUI.createUsername(),
                                 newFirstName.getText() + " " + newLastName.getText(), newEmail.getText(), newPassword.getText(), date);
 
+                        // Set up account details and add the new user to the database
                         currentUserID = newUser.getUserID();
                         pageName = "loggedInPage" + newUser.getUserID();
                         username.setText("Generated UserID: " + newUser.getUserID());
-
                         libraryDataBase.dbAddUser(newUser);
                     }
 
+                    // Clear form fields after account creation
                     newEmail.setText("");
                     newFirstName.setText("");
                     newLastName.setText("");
                     newPassword.setText("");
                     librarian.setSelected(false);
 
+                    // Switch to a screen showing the created username
                     usernameCard.show(usernameScreen, "loginUsername");
 
+                    // Create a personalized screen for the logged-in user
                     JPanel logginPanel = LibraryUI.this.createLoggedInScreen(); //Generating screen with user info
-
                     cardContainer.add(logginPanel, pageName); //Adding screen with user info
 
+                    // Clear any error messages
                     passwordError.setText("");
                     emailError.setText("");
-
+                    // Handle specific password validation errors
                 } catch(UpperCaseCharacterMissing error){
                     passwordError.setText(error.getMessage());
                 } catch(LowerCaseCharacterMissing error){
@@ -436,13 +458,14 @@ public class LibraryUI {
     }
 
     public JPanel createLoggedInScreen(){
+        // Initialize the main panel for the logged-in screen
         JPanel loggedInPanel = new JPanel();
         loggedInPanel.setBackground(Color.WHITE);
         loggedInPanel.setLayout(new GridBagLayout());
         loggedInPanel.setPreferredSize(new Dimension(400, 200));
         loggedInPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
 
-        //Setting user information
+        // Create and set up labels to display user information
         JLabel displayUsername = new JLabel();
         displayUsername.setText("User: " + libraryDataBase.getUser(currentUserID).getUserID());
         displayUsername.setHorizontalAlignment(SwingConstants.CENTER);
@@ -452,8 +475,11 @@ public class LibraryUI {
         displayJoinDate.setHorizontalAlignment(SwingConstants.CENTER);
         JLabel displayEmail = new JLabel("Email: " + libraryDataBase.getUser(currentUserID).getEmail());
         displayEmail.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Button to proceed to the next screen
         JButton next = new JButton("Next");
 
+        // Setup layout constraints for components in GridBagLayout
         GridBagConstraints constraints = new GridBagConstraints();
 
         constraints.ipady = 2;
@@ -473,24 +499,28 @@ public class LibraryUI {
         constraints.gridy = 4;
         loggedInPanel.add(next, constraints);
 
+        // Wrapper panel to enhance the visual appearance
         JPanel loggedInPageWrapper = new JPanel(new GridBagLayout()); //Wrapper panel for the loggedInPanel
         loggedInPageWrapper.setBackground(Color.lightGray);
         Color PURPLE = new Color(102, 0, 153);
         loggedInPageWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
 
+        // Adding the main panel to the wrapper panel
         loggedInPageWrapper.add(loggedInPanel);
 
+        // Action listener for the 'Next' button
         next.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
                 String userType = libraryDataBase.getUser(currentUserID).getClass().getName();
 
+                // Logic to determine the next screen based on user type
                 if(userType.equals("backend.Librarian")){ //Setting different access levels for librarian/patron
                     addBookButton.setVisible(true);
                     card.show(cardContainer, "searchScreen");
                 }
                 else{
-                    addBookButton.setVisible(false);
+                    addBookButton.setVisible(false); // Hide certain options for patrons
                     cardContainer.add(LibraryUI.this.createReturnBookScreen(), "returnScreen" + currentUserID + runner); //Creating new screen with return information
                     card.show(cardContainer, "returnScreen" + currentUserID + runner); //runner used to help with the different screen IDs
                     runner += 1;
@@ -499,18 +529,18 @@ public class LibraryUI {
             }
         });
 
-
-        return loggedInPageWrapper;
+        return loggedInPageWrapper; // Return the wrapper panel with the logged-in screen
     }
 
     public JPanel createLoggedInScreen(backend.User user) {
+        // Initialize the panel to display user information
         JPanel loggedInPanel = new JPanel();
         loggedInPanel.setBackground(Color.WHITE);
         loggedInPanel.setLayout(new GridBagLayout());
         loggedInPanel.setPreferredSize(new Dimension(400, 200));
         loggedInPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
 
-        //Setting user information
+        // Labels to display user-specific information
         JLabel displayUsername = new JLabel("User: " + user.getUserID());
         displayUsername.setHorizontalAlignment(SwingConstants.CENTER);
         JLabel displayFirstName = new JLabel("Name: " + user.getName());
@@ -519,8 +549,11 @@ public class LibraryUI {
         displayJoinDate.setHorizontalAlignment(SwingConstants.CENTER);
         JLabel displayEmail = new JLabel("Email: " + user.getEmail());
         displayEmail.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Button to proceed to the next screen
         JButton next = new JButton("Next");
 
+        // Setup layout constraints for components
         GridBagConstraints constraints = new GridBagConstraints();
 
         constraints.ipady = 2;
@@ -540,15 +573,19 @@ public class LibraryUI {
         constraints.gridy = 4;
         loggedInPanel.add(next, constraints);
 
-        JPanel loggedInPageWrapper = new JPanel(new GridBagLayout()); //Wrapper panel for the loggedInPanel
+        // Wrapper panel for additional styling and layout
+        JPanel loggedInPageWrapper = new JPanel(new GridBagLayout());
         loggedInPageWrapper.setBackground(Color.lightGray);
         Color PURPLE = new Color(102, 0, 153);
         loggedInPageWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
 
+        // Adding the main panel to the wrapper
         loggedInPageWrapper.add(loggedInPanel);
 
+        // Adding functionality to the "Next" button
         next.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                // Check the type of user (Librarian or Patron) and navigate accordingly
                 String userType = user.getClass().getName();
 
                 if(userType.equals("backend.Librarian")){ //Setting different access levels for librarian/patron
@@ -564,11 +601,11 @@ public class LibraryUI {
             }
         });
 
-        return loggedInPageWrapper;
+        return loggedInPageWrapper;// Return the fully constructed logged-in panel
     }
 
 
-    public static int createUsername(){
+    public static int createUsername(){ //return random user ID
         Random random = new Random();
         StringBuilder username = new StringBuilder();
         username.append(String.format("%06d", random.nextInt(999999))); //generates 6 digit user ID
@@ -576,8 +613,11 @@ public class LibraryUI {
         return Integer.parseInt(username.toString());
     }
     public static boolean checkEmailRequirements(String email) throws EmailException{
+        // Flags to track presence of '@' and '.' in the email
         boolean containsAtSign = false;
         boolean containsPeriod = false;
+
+        // Loop through each character in the email to check for '@' and '.'
         for(int i=0; i<email.length(); i++) {
             if (email.charAt(i) == '@') {
                 containsAtSign = true;
@@ -586,25 +626,31 @@ public class LibraryUI {
                 containsPeriod = true;
             }
         }
+
+        // Throw an exception if '@' is missing in the email
         if(!containsAtSign){
             throw new AtSignMissingException("Error - Email Missing '@' Sign");
         }
+        // Throw an exception if '.' is missing in the email
         if(!containsPeriod){
             throw new PeriodMissingException("Error - Email Missing Period (.) Sign");
         }
         return true;
     }
     public static boolean checkPasswordRequirements(String password) throws PasswordException{ //Method to check if password requirements are met
+        // Initialize flags for each password requirement
         boolean upperCase = false;
         boolean lowerCase = false;
         boolean characterLimit = false;
         boolean specialCharacter = false;
         boolean numberCharacter = false;
 
+        // Check if the password length is at least 8 characters
         if(password.length() >= 8){
             characterLimit = true;
         }
 
+        // Iterate over each character of the password to check for different requirements
         for(int i = 0; i < password.length(); i++){
             char character = password.charAt(i);
 
@@ -622,6 +668,7 @@ public class LibraryUI {
             }
         }
 
+        // Throw exceptions if any of the requirements are not met
         if(!upperCase){
             throw new UpperCaseCharacterMissing("Error - Password Missing Uppercase");
         }
@@ -644,37 +691,41 @@ public class LibraryUI {
 
     public JPanel createSearchScreen(){
 
+        // Set up the table model and row sorter for the search table
         tablemodel = new DefaultTableModel();
         rowSorter = new TableRowSorter<DefaultTableModel>(tablemodel); //Used to create new filters for the table(Search filter)
         table = new JTable(tablemodel);
         table.setRowSorter(rowSorter);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
+        // Add columns to the table model
         tablemodel.addColumn("Title");
         tablemodel.addColumn("Authors");
         tablemodel.addColumn("ISBN");
 
+        // Populate the table with book data from the database
         Map<Integer, backend.Book> myMap = libraryDataBase.getBooks();
         backend.Book book;
-
         for(Map.Entry<Integer, backend.Book> entry : myMap.entrySet()){ //Populating table with data
             book = entry.getValue();
             tablemodel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())});
         }
 
+        // Set up a scroll pane for the table
         JScrollPane scrollPane = new JScrollPane(table);
         table.setFillsViewportHeight(true);
 
+        // Create a panel to hold the table and its associated components
         JPanel panel = new JPanel(new GridBagLayout());
 
+        // Add the table (inside its scroll pane) to the panel
         GridBagConstraints constraints = new GridBagConstraints();
-
         constraints.gridx = 1;
         constraints.gridy = 1;
         panel.add(scrollPane, constraints);
 
+        // Create a text field for inputting search filters
         filterText = new JTextField(20);
-
         filterText.getDocument().addDocumentListener(new DocumentListener() {
             public void insertUpdate(DocumentEvent e) {
                 LibraryUI.this.updateTableFilter();
@@ -689,18 +740,22 @@ public class LibraryUI {
             }
         });
 
+        // Create a button for checking out books
         JButton checkOutButton = new JButton("Check Out");
         checkOutButton.setPreferredSize(new Dimension(100, 22));
 
+        // Setup a panel for search filter and checkout button
         JPanel bufferPanel = new JPanel(new GridBagLayout());
         bufferPanel.add(filterText, constraints);
         constraints.gridx = 2;
         bufferPanel.add(checkOutButton, constraints);
 
+        // Add the buffer panel to the main panel
         constraints.gridx = 1;
         constraints.gridy = 0;
         panel.add(bufferPanel, constraints);
 
+        // Labels for displaying messages related to checked out and unavailable books
         JLabel text = new JLabel(); //Text for checked out books/errors
         constraints.gridx = 1;
         constraints.gridy = 2;
@@ -711,38 +766,43 @@ public class LibraryUI {
         constraints.gridy = 3;
         panel.add(text2, constraints);
 
-
+        // Event listener for the checkout button
         checkOutButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                // Get the indices of the selected rows in the table
                 int[] rows = table.getSelectedRows();
 
+                // StringBuilder objects to accumulate messages for checked out and unavailable books
                 StringBuilder checkedOut = new StringBuilder();
                 checkedOut.append("Checked out: ");
                 StringBuilder unavailiableBook = new StringBuilder();
                 unavailiableBook.append("Unavailiable: ");
 
+                // Retrieve the map of books from the database
                 Map<Integer, backend.Book> map = libraryDataBase.getBooks();
 
                 if(rows.length <= 5){ //Requirement that only a max of 5 books can be checked out. Exception can be created/handled here
                     for(int i = 0; i < rows.length; i++){
+                        // Check if the book is already checked out
                         if(!libraryDataBase.isCheckedOut(Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)))){
+                            // Append the title of the checked-out book to the StringBuilder
                             checkedOut.append(tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
 
                             if((i + 1) != rows.length){
                                 checkedOut.append(", ");
                             }
 
+                            // Get the patron object and borrow the book
                             Patron patron = (Patron) libraryDataBase.getUser(currentUserID);
-
                             patron.borrowBook(map, Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
 
+                            // Update the book's status in the database as checked out
                             backend.Book book = new backend.Book(Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
-
                             libraryDataBase.checkOutBook(book);
                         }
                         else{
+                            // Append the title of the unavailable book to the StringBuilder
                             unavailiableBook.append(tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
-
                             if((i + 1) != rows.length){
                                 unavailiableBook.append(", ");
                             }
@@ -751,16 +811,19 @@ public class LibraryUI {
                     }
                 }
                 else{
+                    // Set error message if more than 5 books are selected for checkout
                     checkedOut.append("Error --- Book Limit: 5");
                     unavailiableBook.append("");
                 }
 
+                // Update the labels with the messages for checked out and unavailable books
                 text.setText(checkedOut.toString());
                 text2.setText(unavailiableBook.toString());
 
             }
         });
 
+        // Set the constraints for the 'Add Book' button
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
@@ -768,26 +831,34 @@ public class LibraryUI {
         panel.add(addBookButton, constraints);  //Add linked to sign in button. If backend.Patron don't show. If librarian show
         addBookButton.setVisible(true);
 
+        // Create a 'Logout' button
         JButton logoutFromTableButton = new JButton("Logout");
-        constraints.ipadx = 5;
-        constraints.gridx = 3;
-        constraints.gridy = 1;
-        constraints.anchor = GridBagConstraints.FIRST_LINE_END;
+        constraints.ipadx = 5;  // Padding in x direction
+        constraints.gridx = 3;  // Position on x-axis
+        constraints.gridy = 1;  // Position on y-axis
+        constraints.anchor = GridBagConstraints.FIRST_LINE_END; // Align to the end of the first line
 
+        // Add the 'Logout' button to the panel
         panel.add(logoutFromTableButton, constraints);
 
+        // Add action listener to the 'Add Book' button
         addBookButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                // On clicking 'Add Book', switch to the 'addBook' card in the CardLayout
                 card.show(cardContainer, "addBook");
+                // Clear any text and selections from the search screen
                 text.setText("");
                 text2.setText("");
                 table.clearSelection();
             }
         });
 
+        // Add action listener to the 'Logout' button
         logoutFromTableButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                // On clicking 'Logout', switch back to the sign-in card
                 card.show(cardContainer, "signin");
+                // Clear any text and selections from the search screen
                 text.setText("");
                 text2.setText("");
                 table.clearSelection();
@@ -799,21 +870,26 @@ public class LibraryUI {
     }
 
     public JPanel addBooksPage(){
+        // Setting up the main panel for adding books
         JPanel addBookPanel = new JPanel(new GridBagLayout());
         addBookPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
         addBookPanel.setBackground(Color.WHITE);
         addBookPanel.setPreferredSize(new Dimension(250, 150));
 
+        // Creating labels for book details input fields
         JLabel bookTitle = new JLabel("Book Title: ");
         JLabel bookAuthor = new JLabel("Book Author: ");
         JLabel bookISBN = new JLabel("Book ISBN: ");
 
+        // Text fields for entering book details
         JTextField title = new JTextField(10);
         JTextField author = new JTextField(10);
         JTextField isbn = new JTextField(10);
 
+        // Constraints for layout management
         GridBagConstraints constraints = new GridBagConstraints();
 
+        // Adding title label and text field to the panel
         constraints.ipady = 6;
         constraints.gridx = 0;
         constraints.gridy = 0;
@@ -823,6 +899,7 @@ public class LibraryUI {
         constraints.ipady = 0;
         addBookPanel.add(title, constraints);
 
+        // Adding author label and text field to the panel
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.ipady = 6;
@@ -832,6 +909,7 @@ public class LibraryUI {
         constraints.ipady = 0;
         addBookPanel.add(author, constraints);
 
+        // Adding ISBN label and text field to the panel
         constraints.gridy = 2;
         constraints.gridx = 0;
         constraints.ipady = 6;
@@ -841,31 +919,36 @@ public class LibraryUI {
         constraints.ipady = 0;
         addBookPanel.add(isbn, constraints);
 
+        // Button to add the book to the database
         JButton addBookButton = new JButton("Add");
         addBookButton.setPreferredSize(new Dimension(65, 25));
 
+        // Adding the button to the panel
         constraints.gridy = 3;
         addBookPanel.add(addBookButton, constraints);
 
+        // Wrapper panel for aesthetic purposes
         JPanel addBookPanelWrapper = new JPanel(new GridBagLayout());
         addBookPanelWrapper.setBackground(Color.LIGHT_GRAY);
         Color PURPLE = new Color(102, 0, 153);
         addBookPanelWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
         addBookPanelWrapper.add(addBookPanel);
 
-
+        // Action listener for the add book button
         addBookButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                try {
+                try { // Attempt to parse the ISBN and create a new book object
                     int isbnNumber = Integer.parseInt(isbn.getText()); // Try to parse the ISBN
                     backend.Book book = new backend.Book(backend.Book.BookStatus.AVAILABLE, title.getText(), author.getText(), isbnNumber, false, null);
 
+                    // Add the book to the database and update the table
                     libraryDataBase.dbAddBook(book);
-
                     tablemodel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())}); //Add new data to table
 
+                    // Switch back to the search screen
                     card.show(cardContainer, "searchScreen");
 
+                    // Clear the text fields
                     title.setText("");
                     author.setText("");
                     isbn.setText("");
@@ -878,39 +961,48 @@ public class LibraryUI {
             }
         });
 
-
-
-        return addBookPanelWrapper;
+        return addBookPanelWrapper; // Return the complete panel for adding books
     }
 
-    public void updateTableFilter(){ //Updating filter based on entered text in search bar
+    public void updateTableFilter(){ // This method updates the table filter based on the entered text in the search bar.
         RowFilter<DefaultTableModel, Object> updatedFilter = null;
 
         try {
+            // Create a new RowFilter based on the text entered in the filterText field.
+            // The regexFilter here is case insensitive ('(?i)') and matches the filterText.
             updatedFilter = RowFilter.regexFilter("(?i)" + filterText.getText());
         } catch (java.util.regex.PatternSyntaxException e) {
+            // If the regex pattern is not valid (e.g., an incomplete expression), do not update the filter.
             return;
         }
 
+        // Apply the newly created filter to the row sorter.
+        // This will update the display of the table to only show rows matching the filter.
         rowSorter.setRowFilter(updatedFilter);
     }
 
+
+    /*TODO: Move this logic into a button*/
     public JPanel createReturnBookScreen(){
+        // Create a panel for the returned books section
         JPanel returnedBooksPanel = new JPanel(new GridBagLayout());
         returnedBooksPanel.setBackground(Color.WHITE);
         returnedBooksPanel.setPreferredSize(new Dimension(400, 200));
         returnedBooksPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
 
+        // Labels to display information about returned and overdue books
         JLabel bookInformation = new JLabel();
         JLabel overdueBooksInformation = new JLabel();
 
+        // Obtain current Patron information from the database
         Patron patron = (Patron)libraryDataBase.getUser(currentUserID);
 
+        // Retrieve lists of overdue and returned books
         List<String> overdueBooks = patron.getOverdueBooks(libraryDataBase.getBooks());
         List<String> returnedBooks = patron.returnBook(libraryDataBase.getBooks()); //Can create too many overDue books exception here
 
+        // Building strings to display returned books
         StringBuilder returned = new StringBuilder();
-
         for(int i = 0; i < returnedBooks.size(); i++){
             returned.append(returnedBooks.get(i));
 
@@ -919,8 +1011,8 @@ public class LibraryUI {
             }
         }
 
+        // Building strings to display overdue books
         StringBuilder overdue = new StringBuilder();
-
         if(!overdueBooks.isEmpty()){
             for(int i = 0; i < overdueBooks.size(); i++){
                 overdue.append(overdueBooks.get(i));
@@ -931,26 +1023,31 @@ public class LibraryUI {
             }
         }
 
+        // Setting text for the labels
         bookInformation.setText("Returned Books: " + returned);
         overdueBooksInformation.setText("Overdue Books: " + overdue);
 
+        // Setup layout constraints
         GridBagConstraints constraints = new GridBagConstraints();
 
+        // Add the labels to the panel
         returnedBooksPanel.add(bookInformation, constraints);
-
         constraints.gridy = 1;
         returnedBooksPanel.add(overdueBooksInformation, constraints);
 
+        // Wrapper panel for styling and layout
         JPanel returnedBooksPanelWrapper = new JPanel(new GridBagLayout());
         returnedBooksPanelWrapper.setBackground(Color.LIGHT_GRAY);
         Color PURPLE = new Color(102, 0, 153);
         returnedBooksPanelWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
         returnedBooksPanelWrapper.add(returnedBooksPanel);
 
+        // Button to navigate to the next screen
         JButton next = new JButton("Next");
         constraints.gridy = 2;
         returnedBooksPanel.add(next, constraints);
 
+        // Event listener for the next button
         next.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 card.show(cardContainer, "searchScreen");
@@ -975,15 +1072,14 @@ public class LibraryUI {
 
         // Hardcoding users
         Date currentDate = new Date();
-        backend.User defaultPatron = new backend.Patron(1, "Default Patron", "patron@example.com", "!Password123", currentDate);
-        backend.User defaultLibrarian = new backend.Librarian(2, "Default Librarian", "librarian@example.com", "!Password456", currentDate, currentDate);
 
-        libraryDataBase.dbAddUser(defaultPatron);
-        libraryDataBase.dbAddUser(defaultLibrarian);
+        // Creating two patrons
+        hardcodePatron(1, "Default Patron 1", "patron1@example.com", "Pass", currentDate);
+        hardcodePatron(2, "Default Patron 2", "patron2@example.com", "Pass", currentDate);
 
-        // Creating and adding loggedInPage for each hardcoded user
-        addLoggedInPageForUser(defaultPatron);
-        addLoggedInPageForUser(defaultLibrarian);
+        // Creating two librarians
+        hardcodeLibrarian(3, "Default Librarian 1", "librarian1@example.com", "Pass", currentDate);
+        hardcodeLibrarian(4, "Default Librarian 2", "librarian2@example.com", "Pass", currentDate);
     }
 
     // Helper method to create and add a loggedInPage for a given user
@@ -992,6 +1088,19 @@ public class LibraryUI {
         String pageName = "loggedInPage" + user.getUserID();
         cardContainer.add(loggedInPage, pageName);
     }
+
+    private void hardcodePatron(int id, String name, String email, String password, Date joinDate) {
+        backend.User patron = new backend.Patron(id, name, email, password, joinDate);
+        libraryDataBase.dbAddUser(patron);
+        addLoggedInPageForUser(patron);
+    }
+
+    private void hardcodeLibrarian(int id, String name, String email, String password, Date joinDate) {
+        backend.User librarian = new backend.Librarian(id, name, email, password, joinDate, joinDate);
+        libraryDataBase.dbAddUser(librarian);
+        addLoggedInPageForUser(librarian);
+    }
+
 
 
     public static void main(String[] args) {
