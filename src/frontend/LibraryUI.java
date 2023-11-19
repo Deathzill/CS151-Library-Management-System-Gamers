@@ -28,7 +28,7 @@ public class LibraryUI {
     private JPanel usernameScreen;
     private JTable table;
     private JTextField filterText;
-    private DefaultTableModel tablemodel;
+    private DefaultTableModel tableModel;
     private TableRowSorter<DefaultTableModel> rowSorter;
     private JButton addBookButton;
     private backend.Tables libraryDataBase;
@@ -457,79 +457,9 @@ public class LibraryUI {
         return signUpPageWrapper;
     }
 
-    public JPanel createLoggedInScreen(){
-        // Initialize the main panel for the logged-in screen
-        JPanel loggedInPanel = new JPanel();
-        loggedInPanel.setBackground(Color.WHITE);
-        loggedInPanel.setLayout(new GridBagLayout());
-        loggedInPanel.setPreferredSize(new Dimension(400, 200));
-        loggedInPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
-
-        // Create and set up labels to display user information
-        JLabel displayUsername = new JLabel();
-        displayUsername.setText("User: " + libraryDataBase.getUser(currentUserID).getUserID());
-        displayUsername.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayFirstName = new JLabel("Name: " + libraryDataBase.getUser(currentUserID).getName());
-        displayFirstName.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayJoinDate = new JLabel("Join Date: " + libraryDataBase.getUser(currentUserID).getDateJoined()); //+ userArray.get(signedInUserArrayIndex).getUserLastName());
-        displayJoinDate.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayEmail = new JLabel("Email: " + libraryDataBase.getUser(currentUserID).getEmail());
-        displayEmail.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Button to proceed to the next screen
-        JButton next = new JButton("Next");
-
-        // Setup layout constraints for components in GridBagLayout
-        GridBagConstraints constraints = new GridBagConstraints();
-
-        constraints.ipady = 2;
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        loggedInPanel.add(displayUsername, constraints);
-
-        constraints.gridy = 1;
-        loggedInPanel.add(displayFirstName, constraints);
-
-        constraints.gridy = 2;
-        loggedInPanel.add(displayJoinDate, constraints);
-
-        constraints.gridy = 3;
-        loggedInPanel.add(displayEmail, constraints);
-
-        constraints.gridy = 4;
-        loggedInPanel.add(next, constraints);
-
-        // Wrapper panel to enhance the visual appearance
-        JPanel loggedInPageWrapper = new JPanel(new GridBagLayout()); //Wrapper panel for the loggedInPanel
-        loggedInPageWrapper.setBackground(Color.lightGray);
-        Color PURPLE = new Color(102, 0, 153);
-        loggedInPageWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
-
-        // Adding the main panel to the wrapper panel
-        loggedInPageWrapper.add(loggedInPanel);
-
-        // Action listener for the 'Next' button
-        next.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-
-                String userType = libraryDataBase.getUser(currentUserID).getClass().getName();
-
-                // Logic to determine the next screen based on user type
-                if(userType.equals("backend.Librarian")){ //Setting different access levels for librarian/patron
-                    addBookButton.setVisible(true);
-                    card.show(cardContainer, "searchScreen");
-                }
-                else{
-                    addBookButton.setVisible(false); // Hide certain options for patrons
-                    cardContainer.add(LibraryUI.this.createReturnBookScreen(), "returnScreen" + currentUserID + runner); //Creating new screen with return information
-                    card.show(cardContainer, "returnScreen" + currentUserID + runner); //runner used to help with the different screen IDs
-                    runner += 1;
-                }
-
-            }
-        });
-
-        return loggedInPageWrapper; // Return the wrapper panel with the logged-in screen
+    public JPanel createLoggedInScreen() {
+        /*Call new method that takes user as input, to handle Hard coded and new users*/
+        return createLoggedInScreen(libraryDataBase.getUser(currentUserID));
     }
 
     public JPanel createLoggedInScreen(backend.User user) {
@@ -582,24 +512,20 @@ public class LibraryUI {
         // Adding the main panel to the wrapper
         loggedInPageWrapper.add(loggedInPanel);
 
-        // Adding functionality to the "Next" button
+        // Action listener for the 'Next' button
         next.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Check the type of user (Librarian or Patron) and navigate accordingly
                 String userType = user.getClass().getName();
 
-                if(userType.equals("backend.Librarian")){ //Setting different access levels for librarian/patron
+                if(userType.equals("backend.Librarian")) {
                     addBookButton.setVisible(true);
-                    card.show(cardContainer, "searchScreen");
-                }
-                else{
+                } else {
                     addBookButton.setVisible(false);
-                    cardContainer.add(LibraryUI.this.createReturnBookScreen(), "returnScreen" + user.getUserID() + runner); //Creating new screen with return information
-                    card.show(cardContainer, "returnScreen" + user.getUserID() + runner); //runner used to help with the different screen IDs
-                    runner += 1;
                 }
+
+                card.show(cardContainer, "searchScreen");
             }
-        });
+        });;
 
         return loggedInPageWrapper;// Return the fully constructed logged-in panel
     }
@@ -692,23 +618,23 @@ public class LibraryUI {
     public JPanel createSearchScreen(){
 
         // Set up the table model and row sorter for the search table
-        tablemodel = new DefaultTableModel();
-        rowSorter = new TableRowSorter<DefaultTableModel>(tablemodel); //Used to create new filters for the table(Search filter)
-        table = new JTable(tablemodel);
+        tableModel = new DefaultTableModel();
+        rowSorter = new TableRowSorter<DefaultTableModel>(tableModel); //Used to create new filters for the table(Search filter)
+        table = new JTable(tableModel);
         table.setRowSorter(rowSorter);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         // Add columns to the table model
-        tablemodel.addColumn("Title");
-        tablemodel.addColumn("Authors");
-        tablemodel.addColumn("ISBN");
+        tableModel.addColumn("Title");
+        tableModel.addColumn("Authors");
+        tableModel.addColumn("ISBN");
 
         // Populate the table with book data from the database
         Map<Integer, backend.Book> myMap = libraryDataBase.getBooks();
         backend.Book book;
         for(Map.Entry<Integer, backend.Book> entry : myMap.entrySet()){ //Populating table with data
             book = entry.getValue();
-            tablemodel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())});
+            tableModel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())});
         }
 
         // Set up a scroll pane for the table
@@ -784,9 +710,9 @@ public class LibraryUI {
                 if(rows.length <= 5){ //Requirement that only a max of 5 books can be checked out. Exception can be created/handled here
                     for(int i = 0; i < rows.length; i++){
                         // Check if the book is already checked out
-                        if(!libraryDataBase.isCheckedOut(Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)))){
+                        if(!libraryDataBase.isCheckedOut(Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)))){
                             // Append the title of the checked-out book to the StringBuilder
-                            checkedOut.append(tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
+                            checkedOut.append(tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
 
                             if((i + 1) != rows.length){
                                 checkedOut.append(", ");
@@ -794,15 +720,15 @@ public class LibraryUI {
 
                             // Get the patron object and borrow the book
                             Patron patron = (Patron) libraryDataBase.getUser(currentUserID);
-                            patron.borrowBook(map, Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
+                            patron.borrowBook(map, Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
 
                             // Update the book's status in the database as checked out
-                            backend.Book book = new backend.Book(Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
+                            backend.Book book = new backend.Book(Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
                             libraryDataBase.checkOutBook(book);
                         }
                         else{
                             // Append the title of the unavailable book to the StringBuilder
-                            unavailiableBook.append(tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
+                            unavailiableBook.append(tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
                             if((i + 1) != rows.length){
                                 unavailiableBook.append(", ");
                             }
@@ -820,6 +746,40 @@ public class LibraryUI {
                 text.setText(checkedOut.toString());
                 text2.setText(unavailiableBook.toString());
 
+            }
+        });
+
+        // Create a 'Return' button
+        JButton returnButton = new JButton("Return");
+        returnButton.setPreferredSize(new Dimension(100, 22));
+
+        // Add the filter text field to the buffer panel
+        constraints.gridx = 0; // Adjust grid position as needed
+        constraints.gridy = 0; // Adjust grid position as needed
+        bufferPanel.add(filterText, constraints);
+
+        // Add the 'Check Out' button to the buffer panel
+        constraints.gridx = 1; // Adjust grid position as needed
+        bufferPanel.add(checkOutButton, constraints);
+
+        // Add the 'Return' button to the buffer panel
+        constraints.gridx = 2; // Adjust grid position as needed
+        bufferPanel.add(returnButton, constraints);
+
+        // Add the buffer panel to the main panel
+        constraints.gridx = 0; // Reset to align with the main panel
+        constraints.gridy = 0;
+        constraints.gridwidth = GridBagConstraints.REMAINDER; // Span across all columns
+        panel.add(bufferPanel, constraints);
+
+        // Action listener for the 'Return' button
+        returnButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Add the return book screen to the card layout
+                cardContainer.add(LibraryUI.this.createReturnBookScreen(), "returnScreen" + currentUserID + runner);
+                // Show the return book screen
+                card.show(cardContainer, "returnScreen" + currentUserID + runner);
+                runner++;
             }
         });
 
@@ -943,7 +903,7 @@ public class LibraryUI {
 
                     // Add the book to the database and update the table
                     libraryDataBase.dbAddBook(book);
-                    tablemodel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())}); //Add new data to table
+                    tableModel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())}); //Add new data to table
 
                     // Switch back to the search screen
                     card.show(cardContainer, "searchScreen");
@@ -982,8 +942,10 @@ public class LibraryUI {
     }
 
 
-    /*TODO: Move this logic into a button*/
+    //creates a page where users can return books
     public JPanel createReturnBookScreen(){
+        //TODO:change this logic to allow the user to select what books they want to return
+
         // Create a panel for the returned books section
         JPanel returnedBooksPanel = new JPanel(new GridBagLayout());
         returnedBooksPanel.setBackground(Color.WHITE);
@@ -1061,14 +1023,18 @@ public class LibraryUI {
         libraryDataBase = new Tables();
 
         // Adding books
-        backend.Book book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding", "Hancock" , 23214, false, null);
-        libraryDataBase.dbAddBook(book);
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "Harry Potter and the Chamber of Secrets", "J.K. Rowling", 34587, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Hunger Games", "Suzanne Collins", 76459, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "1984", "George Orwell", 58320, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "To Kill a Mockingbird", "Harper Lee", 49275, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Great Gatsby", "F. Scott Fitzgerald", 86543, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "Pride and Prejudice", "Jane Austen", 23498, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Lord of the Rings", "J.R.R. Tolkien", 67932, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Catcher in the Rye", "J.D. Salinger", 43876, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Da Vinci Code", "Dan Brown", 54782, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "Brave New World", "Aldous Huxley", 65890, false, null));
+        libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "Animal Farm", "George Orwell", 32789, false, null));
 
-        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding1", "Hancock1" , 232142, false, null);
-        libraryDataBase.dbAddBook(book);
-
-        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding2", "Hancock2" , 232141, false, null);
-        libraryDataBase.dbAddBook(book);
 
         // Hardcoding users
         Date currentDate = new Date();
