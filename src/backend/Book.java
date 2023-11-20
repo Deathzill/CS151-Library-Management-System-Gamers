@@ -1,12 +1,14 @@
 package backend;
 
+import org.json.JSONObject;
+
 import java.util.Calendar;
 import java.util.Date;
 
 public class Book implements Borrowable{
 
     public enum BookStatus{
-        AVAILABLE, CHECKED_OUT, LOST, DAMAGED
+        AVAILABLE, CHECKED_OUT
     }
 
     private BookStatus status;
@@ -102,6 +104,30 @@ public class Book implements Borrowable{
         status = BookStatus.CHECKED_OUT;
         this.dueDate = tempCalendar.getTime();
         isCheckedOut = true;
+    }
+
+    // Add toJSON method
+    public JSONObject toJSON() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("status", status.toString());
+        jsonObject.put("title", title);
+        jsonObject.put("author", author);
+        jsonObject.put("ISBN", ISBN);
+        jsonObject.put("isCheckedOut", isCheckedOut);
+        jsonObject.put("dueDate", dueDate != null ? dueDate.getTime() : null);  // Convert Date to long
+        return jsonObject;
+    }
+
+    // Add static fromJSON method
+    public static Book fromJSON(JSONObject jsonObject) {
+        BookStatus status = BookStatus.valueOf(jsonObject.getString("status"));
+        String title = jsonObject.getString("title");
+        String author = jsonObject.getString("author");
+        int ISBN = jsonObject.getInt("ISBN");
+        boolean isCheckedOut = jsonObject.getBoolean("isCheckedOut");
+        Date dueDate = jsonObject.isNull("dueDate") ? null : new Date(jsonObject.getLong("dueDate"));  // Convert long back to Date
+
+        return new Book(status, title, author, ISBN, isCheckedOut, dueDate);
     }
 
 }

@@ -1,5 +1,8 @@
 package backend;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -61,4 +64,30 @@ public class Patron extends User{
         return true;
     }
 
+    // Override toJSON method
+    @Override
+    public JSONObject toJSON() {
+        JSONObject jsonObject = super.toJSON();  // Call User's toJSON
+        jsonObject.put("borrowedBooks", new JSONArray(borrowedBooks));
+        jsonObject.put("overdueBooks", new JSONArray(overdueBooks));
+        return jsonObject;
+    }
+
+    // Add static fromJSON method
+    public static Patron fromJSON(JSONObject jsonObject) {
+        User user = User.fromJSON(jsonObject); // Construct User part
+        Patron patron = new Patron(user.getUserID(), user.getName(), user.getEmail(), user.getPassword(), user.getDateJoined());
+
+        JSONArray borrowedBooksArray = jsonObject.getJSONArray("borrowedBooks");
+        for (int i = 0; i < borrowedBooksArray.length(); i++) {
+            patron.borrowedBooks.add(borrowedBooksArray.getInt(i));
+        }
+
+        JSONArray overdueBooksArray = jsonObject.getJSONArray("overdueBooks");
+        for (int i = 0; i < overdueBooksArray.length(); i++) {
+            patron.overdueBooks.add(overdueBooksArray.getString(i));
+        }
+
+        return patron;
+    }
 }
