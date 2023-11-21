@@ -1,7 +1,9 @@
 package frontend;
 
+import backend.Librarian;
 import backend.Patron;
 import backend.Tables;
+import backend.User;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -32,6 +34,8 @@ public class LibraryUI {
     private DefaultTableModel tableModel;
     private TableRowSorter<DefaultTableModel> rowSorter;
     private JButton addBookButton;
+    private JButton checkOutButton;
+    private JButton returnButton;
     private backend.Tables libraryDataBase;
     private int currentUserID;
     private int runner = 0;
@@ -212,7 +216,7 @@ public class LibraryUI {
             public void actionPerformed(ActionEvent e) {
                 try {
                     int userId = Integer.parseInt(usernameInput.getText());
-                    backend.User user = libraryDataBase.getUser(userId);
+                    User user = libraryDataBase.getUser(userId);
                     System.out.println("Retrieved user: " + user); // Debugging line
 
                     if (user != null && user.getPassword().equals(passwordInput.getText())) {
@@ -224,6 +228,14 @@ public class LibraryUI {
                         cardContainer.add(loggedInPage, page);
                         card.show(cardContainer, page); // Display Login Page
                         currentUserID = userId;
+
+                        // Update button visibility
+                        boolean isPatron = user instanceof Patron;
+                        checkOutButton.setVisible(isPatron);
+                        returnButton.setVisible(isPatron);
+
+                        boolean isLibrarian = user instanceof Librarian;
+                        addBookButton.setVisible(isLibrarian);
 
                         usernameInput.setText("");
                         passwordInput.setText("");
@@ -515,6 +527,15 @@ public class LibraryUI {
         constraints.gridy = 4;
         loggedInPanel.add(next, constraints);
 
+        // Modify the visibility based on user type
+        boolean isPatron = user instanceof Patron;
+        checkOutButton.setVisible(isPatron);
+        returnButton.setVisible(isPatron);
+
+        boolean isLibrarian = user instanceof Librarian;
+        addBookButton.setVisible(isLibrarian);
+
+
         // Wrapper panel for additional styling and layout
         JPanel loggedInPageWrapper = new JPanel(new GridBagLayout());
         loggedInPageWrapper.setBackground(Color.lightGray);
@@ -527,17 +548,10 @@ public class LibraryUI {
         // Action listener for the 'Next' button
         next.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String userType = user.getClass().getName();
-
-                if(userType.equals("backend.Librarian")) {
-                    addBookButton.setVisible(true);
-                } else {
-                    addBookButton.setVisible(false);
-                }
-
                 card.show(cardContainer, "searchScreen");
             }
         });;
+
 
         return loggedInPageWrapper;// Return the fully constructed logged-in panel
     }
@@ -679,7 +693,7 @@ public class LibraryUI {
         });
 
         // Create a button for checking out books
-        JButton checkOutButton = new JButton("Check Out");
+        this.checkOutButton = new JButton("Check Out");
         checkOutButton.setPreferredSize(new Dimension(100, 22));
 
         // Setup a panel for search filter and checkout button
@@ -762,7 +776,7 @@ public class LibraryUI {
         });
 
         // Create a 'Return' button
-        JButton returnButton = new JButton("Return");
+        this.returnButton = new JButton("Return");
         returnButton.setPreferredSize(new Dimension(100, 22));
 
         // Add the filter text field to the buffer panel
@@ -777,6 +791,21 @@ public class LibraryUI {
         // Add the 'Return' button to the buffer panel
         constraints.gridx = 2; // Adjust grid position as needed
         bufferPanel.add(returnButton, constraints);
+
+        // Create 'AddBook' Button
+        this.addBookButton = new JButton("Add Book");
+        addBookButton.setVisible(false); // Initially hidden
+
+        // Set the constraints for the 'Add Book' button
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
+        panel.add(addBookButton, constraints);  //Add linked to sign in button. If backend.Patron don't show. If librarian show
+
+        // Add the 'AddBook' Button to the buffer panel
+
+        constraints.gridx = 3; // Adjust grid position as needed
+        bufferPanel.add(addBookButton, constraints);
 
         // Add the buffer panel to the main panel
         constraints.gridx = 0; // Reset to align with the main panel
@@ -795,13 +824,6 @@ public class LibraryUI {
             }
         });
 
-        // Set the constraints for the 'Add Book' button
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        constraints.anchor = GridBagConstraints.FIRST_LINE_START;
-        addBookButton = new JButton("Add Book");
-        panel.add(addBookButton, constraints);  //Add linked to sign in button. If backend.Patron don't show. If librarian show
-        addBookButton.setVisible(true);
 
         // Create a 'Logout' button
         JButton logoutFromTableButton = new JButton("Logout");
