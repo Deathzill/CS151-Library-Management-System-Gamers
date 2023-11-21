@@ -59,6 +59,7 @@ public class LibraryUI {
         // Load data from JSON
         this.loadDatabase();
 
+
         // Retrieve the CardLayout instance from cardContainer
         card = (CardLayout)(cardContainer.getLayout());
 
@@ -77,7 +78,7 @@ public class LibraryUI {
 
         // Add other pages
         cardContainer.add(this.createSearchScreen(), "searchScreen");
-        cardContainer.add(this.addBooksPage(), "addBook");
+        cardContainer.add(this.addBooksPage(), "addBookPage");
 
         frame.add(cardContainer);
         frame.setVisible(true);
@@ -812,6 +813,13 @@ public class LibraryUI {
         constraints.gridx = 3; // Adjust grid position as needed
         bufferPanel.add(addBookButton, constraints);
 
+        addBookButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                card.show(cardContainer, "addBookPage");
+            }
+        });
+
         // Create 'RemoveBook' Button
         this.removeBookButton = new JButton("Remove Book");
         removeBookButton.setVisible(false); // Initially hidden, visible only to librarians
@@ -982,12 +990,12 @@ public class LibraryUI {
         addBookPanel.add(isbn, constraints);
 
         // Button to add the book to the database
-        JButton addBookButton = new JButton("Add");
-        addBookButton.setPreferredSize(new Dimension(65, 25));
+        JButton addBooksButton = new JButton("Add");
+        addBooksButton.setPreferredSize(new Dimension(65, 25));
 
         // Adding the button to the panel
         constraints.gridy = 3;
-        addBookPanel.add(addBookButton, constraints);
+        addBookPanel.add(addBooksButton, constraints);
 
         // Wrapper panel for aesthetic purposes
         JPanel addBookPanelWrapper = new JPanel(new GridBagLayout());
@@ -997,7 +1005,7 @@ public class LibraryUI {
         addBookPanelWrapper.add(addBookPanel);
 
         // Action listener for the add book button
-        addBookButton.addActionListener(new ActionListener() {
+        addBooksButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try { // Attempt to parse the ISBN and create a new book object
                     int isbnNumber = Integer.parseInt(isbn.getText()); // Try to parse the ISBN
