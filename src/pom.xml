@@ -6,6 +6,20 @@
     <artifactId>your-app</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <build>
+        <!-- Define the source directory -->
+        <sourceDirectory>main/java</sourceDirectory>
+
+        <!-- Define the test source directory -->
+        <testSourceDirectory>test</testSourceDirectory>
+        <!-- Define the test resource directory if you have test resources -->
+        <testResources>
+            <testResource>
+                <directory>src/your-app/test/resources</directory>
+            </testResource>
+        </testResources>
+    </build>
+
     <dependencies>
         <!-- JSON dependency -->
         <dependency>
