@@ -1,7 +1,9 @@
 package frontend;
 
+import backend.Librarian;
 import backend.Patron;
 import backend.Tables;
+import backend.User;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -11,6 +13,7 @@ import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -28,21 +31,41 @@ public class LibraryUI {
     private JPanel usernameScreen;
     private JTable table;
     private JTextField filterText;
-    private DefaultTableModel tablemodel;
+    private DefaultTableModel tableModel;
     private TableRowSorter<DefaultTableModel> rowSorter;
+    // Initializing buttons
     private JButton addBookButton;
+    private JButton removeBookButton;
+    private JButton checkOutButton;
+    private JButton returnButton;
     private backend.Tables libraryDataBase;
     private int currentUserID;
     private int runner = 0;
+    private static final String JSON_FILE_PATH = "library_data.json"; // Path to the JSON file
 
     public LibraryUI() {
         // Initialize cardContainer first
         cardContainer = new JPanel(new CardLayout());
 
+        // Initialize libraryDataBase
+        libraryDataBase = new Tables();
+
+        // Initialize buttons here before they are used in any method
+        this.checkOutButton = new JButton("Check Out");
+        this.returnButton = new JButton("Return");
+        this.addBookButton = new JButton("Add Book");
+        this.removeBookButton = new JButton("Remove Book");
+
+        // Now call createDataBase
+        this.createDataBase();
+
+        // Load data from JSON
+        this.loadDatabase();
+
         // Retrieve the CardLayout instance from cardContainer
         card = (CardLayout)(cardContainer.getLayout());
 
-        frame = new JFrame("Social Network - Sign In Page");
+        frame = new JFrame("Library Management System");
         frame.setLayout(new BorderLayout());
         frame.setSize(900, 600);
         frame.setLocationRelativeTo(null);
@@ -55,9 +78,6 @@ public class LibraryUI {
         cardContainer.add(createdSignInPage, "signin");
         cardContainer.add(createdSignUpPage, "signUpPage");
 
-        // Now call createDataBase
-        this.createDataBase();
-
         // Add other pages
         cardContainer.add(this.createSearchScreen(), "searchScreen");
         cardContainer.add(this.addBooksPage(), "addBook");
@@ -67,7 +87,17 @@ public class LibraryUI {
 
         // Set the sign-in page as the default visible panel
         card.show(cardContainer, "signin");
+
+        // Setup window closing event
+        frame.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                // Save data to JSON before exiting
+                saveDatabase();
+            }
+        });
     }
+
 
 
     public JPanel createSignInPage(){
@@ -192,41 +222,43 @@ public class LibraryUI {
         // Event listeners for sign-in
         signin.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                String out = null; // Variable to hold the output message
-                boolean loggedIn = false; // Flag to track if the user successfully logged in
-
                 try {
-                    // Attempt to retrieve the user from the database using the provided username
-                    if (libraryDataBase.getUser(Integer.parseInt(usernameInput.getText())) != null) {
-                        backend.User user = libraryDataBase.getUser(Integer.parseInt(usernameInput.getText()));
-                        // If the user is found, compare the provided password with the one in the database
-                        if (user.getPassword().equals(passwordInput.getText())) {
-                            // If password matches, set up and display the user's logged-in page
-                            String page = "loggedInPage" + user.getUserID();
-                            card.show(cardContainer, page);
-                            currentUserID = Integer.parseInt(usernameInput.getText());
+                    int userId = Integer.parseInt(usernameInput.getText());
+                    User user = libraryDataBase.getUser(userId);
+                    System.out.println("Retrieved user: " + user); // Debugging line
 
-                            // Clear the text fields and reset the output message
-                            usernameInput.setText("");
-                            passwordInput.setText("");
-                            text.setText("");
-                            loggedIn = true; // Set the flag as the user is successfully logged in
-                        }
-                    }
+                    if (user != null && user.getPassword().equals(passwordInput.getText())) {
+                        System.out.println("Login successful for user: " + userId); // Debugging line
 
-                    // If login was unsuccessful, display an error message
-                    if(!loggedIn) {
-                        out = "Incorrect Login...";
-                        text.setText(out);
+                        // Create login page
+                        String page = "loggedInPage" + user.getUserID();
+                        JPanel loggedInPage = createLoggedInScreen(user);
+                        cardContainer.add(loggedInPage, page);
+                        card.show(cardContainer, page); // Display Login Page
+                        currentUserID = userId;
+
+                        // Update button visibility
+                        boolean isPatron = user instanceof Patron;
+                        checkOutButton.setVisible(isPatron);
+                        returnButton.setVisible(isPatron);
+
+                        boolean isLibrarian = user instanceof Librarian;
+                        addBookButton.setVisible(isLibrarian);
+
+                        usernameInput.setText("");
+                        passwordInput.setText("");
+                        text.setText("");
+                    } else {
+                        System.out.println("Login failed for user: " + userId); // Debugging line
+                        text.setText("Incorrect Login...");
                     }
-                    // Handle the case where the username input is empty or not a number
                 } catch(NumberFormatException ex){
-                    out = "Input is empty or non-numerical...";
-                    text.setText(out);
+                    System.out.println("Error parsing user ID: " + usernameInput.getText()); // Debugging line
+                    text.setText("Input is empty or non-numerical...");
                 }
             }
         });
-        ;
+
 
         //eventListeners for sign up
         signup.addActionListener(new ActionListener() {
@@ -457,79 +489,9 @@ public class LibraryUI {
         return signUpPageWrapper;
     }
 
-    public JPanel createLoggedInScreen(){
-        // Initialize the main panel for the logged-in screen
-        JPanel loggedInPanel = new JPanel();
-        loggedInPanel.setBackground(Color.WHITE);
-        loggedInPanel.setLayout(new GridBagLayout());
-        loggedInPanel.setPreferredSize(new Dimension(400, 200));
-        loggedInPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
-
-        // Create and set up labels to display user information
-        JLabel displayUsername = new JLabel();
-        displayUsername.setText("User: " + libraryDataBase.getUser(currentUserID).getUserID());
-        displayUsername.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayFirstName = new JLabel("Name: " + libraryDataBase.getUser(currentUserID).getName());
-        displayFirstName.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayJoinDate = new JLabel("Join Date: " + libraryDataBase.getUser(currentUserID).getDateJoined()); //+ userArray.get(signedInUserArrayIndex).getUserLastName());
-        displayJoinDate.setHorizontalAlignment(SwingConstants.CENTER);
-        JLabel displayEmail = new JLabel("Email: " + libraryDataBase.getUser(currentUserID).getEmail());
-        displayEmail.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Button to proceed to the next screen
-        JButton next = new JButton("Next");
-
-        // Setup layout constraints for components in GridBagLayout
-        GridBagConstraints constraints = new GridBagConstraints();
-
-        constraints.ipady = 2;
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        loggedInPanel.add(displayUsername, constraints);
-
-        constraints.gridy = 1;
-        loggedInPanel.add(displayFirstName, constraints);
-
-        constraints.gridy = 2;
-        loggedInPanel.add(displayJoinDate, constraints);
-
-        constraints.gridy = 3;
-        loggedInPanel.add(displayEmail, constraints);
-
-        constraints.gridy = 4;
-        loggedInPanel.add(next, constraints);
-
-        // Wrapper panel to enhance the visual appearance
-        JPanel loggedInPageWrapper = new JPanel(new GridBagLayout()); //Wrapper panel for the loggedInPanel
-        loggedInPageWrapper.setBackground(Color.lightGray);
-        Color PURPLE = new Color(102, 0, 153);
-        loggedInPageWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
-
-        // Adding the main panel to the wrapper panel
-        loggedInPageWrapper.add(loggedInPanel);
-
-        // Action listener for the 'Next' button
-        next.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-
-                String userType = libraryDataBase.getUser(currentUserID).getClass().getName();
-
-                // Logic to determine the next screen based on user type
-                if(userType.equals("backend.Librarian")){ //Setting different access levels for librarian/patron
-                    addBookButton.setVisible(true);
-                    card.show(cardContainer, "searchScreen");
-                }
-                else{
-                    addBookButton.setVisible(false); // Hide certain options for patrons
-                    cardContainer.add(LibraryUI.this.createReturnBookScreen(), "returnScreen" + currentUserID + runner); //Creating new screen with return information
-                    card.show(cardContainer, "returnScreen" + currentUserID + runner); //runner used to help with the different screen IDs
-                    runner += 1;
-                }
-
-            }
-        });
-
-        return loggedInPageWrapper; // Return the wrapper panel with the logged-in screen
+    public JPanel createLoggedInScreen() {
+        /*Call new method that takes user as input, to handle Hard coded and new users*/
+        return createLoggedInScreen(libraryDataBase.getUser(currentUserID));
     }
 
     public JPanel createLoggedInScreen(backend.User user) {
@@ -573,6 +535,16 @@ public class LibraryUI {
         constraints.gridy = 4;
         loggedInPanel.add(next, constraints);
 
+        // Modify the visibility based on user type
+        boolean isPatron = user instanceof Patron;
+        checkOutButton.setVisible(isPatron);
+        returnButton.setVisible(isPatron);
+
+        boolean isLibrarian = user instanceof Librarian;
+        addBookButton.setVisible(isLibrarian);
+        removeBookButton.setVisible(isLibrarian);
+
+
         // Wrapper panel for additional styling and layout
         JPanel loggedInPageWrapper = new JPanel(new GridBagLayout());
         loggedInPageWrapper.setBackground(Color.lightGray);
@@ -582,24 +554,13 @@ public class LibraryUI {
         // Adding the main panel to the wrapper
         loggedInPageWrapper.add(loggedInPanel);
 
-        // Adding functionality to the "Next" button
+        // Action listener for the 'Next' button
         next.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // Check the type of user (Librarian or Patron) and navigate accordingly
-                String userType = user.getClass().getName();
-
-                if(userType.equals("backend.Librarian")){ //Setting different access levels for librarian/patron
-                    addBookButton.setVisible(true);
-                    card.show(cardContainer, "searchScreen");
-                }
-                else{
-                    addBookButton.setVisible(false);
-                    cardContainer.add(LibraryUI.this.createReturnBookScreen(), "returnScreen" + user.getUserID() + runner); //Creating new screen with return information
-                    card.show(cardContainer, "returnScreen" + user.getUserID() + runner); //runner used to help with the different screen IDs
-                    runner += 1;
-                }
+                card.show(cardContainer, "searchScreen");
             }
-        });
+        });;
+
 
         return loggedInPageWrapper;// Return the fully constructed logged-in panel
     }
@@ -692,23 +653,23 @@ public class LibraryUI {
     public JPanel createSearchScreen(){
 
         // Set up the table model and row sorter for the search table
-        tablemodel = new DefaultTableModel();
-        rowSorter = new TableRowSorter<DefaultTableModel>(tablemodel); //Used to create new filters for the table(Search filter)
-        table = new JTable(tablemodel);
+        tableModel = new DefaultTableModel();
+        rowSorter = new TableRowSorter<DefaultTableModel>(tableModel); //Used to create new filters for the table(Search filter)
+        table = new JTable(tableModel);
         table.setRowSorter(rowSorter);
         table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         // Add columns to the table model
-        tablemodel.addColumn("Title");
-        tablemodel.addColumn("Authors");
-        tablemodel.addColumn("ISBN");
+        tableModel.addColumn("Title");
+        tableModel.addColumn("Authors");
+        tableModel.addColumn("ISBN");
 
         // Populate the table with book data from the database
         Map<Integer, backend.Book> myMap = libraryDataBase.getBooks();
         backend.Book book;
         for(Map.Entry<Integer, backend.Book> entry : myMap.entrySet()){ //Populating table with data
             book = entry.getValue();
-            tablemodel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())});
+            tableModel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())});
         }
 
         // Set up a scroll pane for the table
@@ -741,7 +702,7 @@ public class LibraryUI {
         });
 
         // Create a button for checking out books
-        JButton checkOutButton = new JButton("Check Out");
+        this.checkOutButton = new JButton("Check Out");
         checkOutButton.setPreferredSize(new Dimension(100, 22));
 
         // Setup a panel for search filter and checkout button
@@ -781,12 +742,23 @@ public class LibraryUI {
                 // Retrieve the map of books from the database
                 Map<Integer, backend.Book> map = libraryDataBase.getBooks();
 
+                // Retrieve the current user
+                User user = libraryDataBase.getUser(currentUserID);
+
+                // Check if the user is a Patron and has overdue books
+                if (user instanceof Patron patron) {
+                    if (!patron.getOverdueBooks(libraryDataBase.getBooks()).isEmpty()) {
+                        JOptionPane.showMessageDialog(frame, "You cannot check this book out as you have one or more overdue books", "Overdue Books", JOptionPane.ERROR_MESSAGE);
+                        return; // Stop the method if there are overdue books
+                    }
+                }
+
                 if(rows.length <= 5){ //Requirement that only a max of 5 books can be checked out. Exception can be created/handled here
                     for(int i = 0; i < rows.length; i++){
                         // Check if the book is already checked out
-                        if(!libraryDataBase.isCheckedOut(Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)))){
+                        if(!libraryDataBase.isCheckedOut(Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)))){
                             // Append the title of the checked-out book to the StringBuilder
-                            checkedOut.append(tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
+                            checkedOut.append(tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
 
                             if((i + 1) != rows.length){
                                 checkedOut.append(", ");
@@ -794,15 +766,15 @@ public class LibraryUI {
 
                             // Get the patron object and borrow the book
                             Patron patron = (Patron) libraryDataBase.getUser(currentUserID);
-                            patron.borrowBook(map, Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
+                            patron.borrowBook(map, Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
 
                             // Update the book's status in the database as checked out
-                            backend.Book book = new backend.Book(Integer.parseInt((String)tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
+                            backend.Book book = new backend.Book(Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
                             libraryDataBase.checkOutBook(book);
                         }
                         else{
                             // Append the title of the unavailable book to the StringBuilder
-                            unavailiableBook.append(tablemodel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
+                            unavailiableBook.append(tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 0));
                             if((i + 1) != rows.length){
                                 unavailiableBook.append(", ");
                             }
@@ -823,13 +795,132 @@ public class LibraryUI {
             }
         });
 
+        // Create a 'Return' button
+        this.returnButton = new JButton("Return");
+        returnButton.setPreferredSize(new Dimension(100, 22));
+
+        // Add the filter text field to the buffer panel
+        constraints.gridx = 0; // Adjust grid position as needed
+        constraints.gridy = 0; // Adjust grid position as needed
+        bufferPanel.add(filterText, constraints);
+
+        // Add the 'Check Out' button to the buffer panel
+        constraints.gridx = 1; // Adjust grid position as needed
+        bufferPanel.add(checkOutButton, constraints);
+
+        // Add the 'Return' button to the buffer panel
+        constraints.gridx = 2; // Adjust grid position as needed
+        bufferPanel.add(returnButton, constraints);
+
+        // Create 'AddBook' Button
+        this.addBookButton = new JButton("Add Book");
+        addBookButton.setVisible(false); // Initially hidden
+
         // Set the constraints for the 'Add Book' button
         constraints.gridx = 0;
         constraints.gridy = 1;
         constraints.anchor = GridBagConstraints.FIRST_LINE_START;
-        addBookButton = new JButton("Add Book");
         panel.add(addBookButton, constraints);  //Add linked to sign in button. If backend.Patron don't show. If librarian show
-        addBookButton.setVisible(true);
+
+        // Add the 'AddBook' Button to the buffer panel
+        constraints.gridx = 3; // Adjust grid position as needed
+        bufferPanel.add(addBookButton, constraints);
+
+        // Create 'RemoveBook' Button
+        this.removeBookButton = new JButton("Remove Book");
+        removeBookButton.setVisible(false); // Initially hidden, visible only to librarians
+        // Set the constraints for the 'Remove Book' button
+        constraints.gridx = 4; // Adjust the grid position as needed
+        constraints.gridy = 0; // Adjust the grid position as needed
+        bufferPanel.add(removeBookButton, constraints);
+
+        // Add the 'removeBook' Button to the buffer panel
+        constraints.gridx = 2; // Adjust grid position as needed
+        bufferPanel.add(removeBookButton, constraints);
+
+        // Create a 'Logout' button
+        JButton logoutButton = new JButton("Logout");
+        constraints.gridx = 4; // Adjust grid position as needed
+        constraints.gridy = 1; // Adjust grid position as needed
+        panel.add(logoutButton, constraints);
+
+        // Add action listener to the 'Logout' button
+        logoutButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Log out the user and show the sign-in screen
+                card.show(cardContainer, "signin");
+                // Optionally, reset any relevant fields or states
+            }
+        });
+
+        // Create a 'Delete Account' button
+        JButton deleteAccountButton = new JButton("Delete Account");
+        constraints.gridx = 5; // Adjust grid position as needed
+        constraints.gridy = 1; // Adjust grid position as needed
+        panel.add(deleteAccountButton, constraints);
+
+// Add action listener to the 'Delete Account' button
+        deleteAccountButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Confirmation dialog
+                int confirm = JOptionPane.showConfirmDialog(
+                        frame,
+                        "Are you sure you want to delete your account? This action cannot be undone.",
+                        "Confirm Account Deletion",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (confirm == JOptionPane.YES_OPTION) {
+
+                    // Check if the user is a Patron and has books checked out
+                    User currentUser = libraryDataBase.getUser(currentUserID);
+                    if (currentUser instanceof Patron) {
+                        Patron patron = (Patron) currentUser;
+                        if (!patron.getCheckedOutBooks(libraryDataBase.getBooks()).isEmpty()) {
+                            JOptionPane.showMessageDialog(
+                                    frame,
+                                    "You cannot delete your account while you have books checked out.",
+                                    "Account Deletion Failed",
+                                    JOptionPane.ERROR_MESSAGE
+                            );
+                            return; // Stop if books are checked out
+                        }
+                    }
+
+                    // Proceed to delete the account
+                    libraryDataBase.dbRemoveUser(currentUser);
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            "Your account has been successfully deleted.",
+                            "Account Deleted",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                    // Logging out the user
+                    card.show(cardContainer, "signin");
+                    // Optionally, reset any relevant fields or states
+                }
+            }
+        });
+
+
+        // Add the buffer panel to the main panel
+        constraints.gridx = 0; // Reset to align with the main panel
+        constraints.gridy = 0;
+        constraints.gridwidth = GridBagConstraints.REMAINDER; // Span across all columns
+        panel.add(bufferPanel, constraints);
+
+        // Action listener for the 'Return' button
+        returnButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Add the return book screen to the card layout
+                cardContainer.add(LibraryUI.this.createReturnBookScreen(), "returnScreen" + currentUserID + runner);
+                // Show the return book screen
+                card.show(cardContainer, "returnScreen" + currentUserID + runner);
+                runner++;
+            }
+        });
+
 
         // Create a 'Logout' button
         JButton logoutFromTableButton = new JButton("Logout");
@@ -852,6 +943,23 @@ public class LibraryUI {
                 table.clearSelection();
             }
         });
+
+        removeBookButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int[] rows = table.getSelectedRows();
+                for (int i = 0; i < rows.length; i++) {
+                    int isbn = Integer.parseInt((String) tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2));
+                    boolean removed = libraryDataBase.dbRemoveBook(isbn);
+                    if (removed) {
+                        tableModel.removeRow(table.convertRowIndexToModel(rows[i]));
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Book does not exist or cannot be removed", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+
 
         // Add action listener to the 'Logout' button
         logoutFromTableButton.addActionListener(new ActionListener() {
@@ -943,7 +1051,7 @@ public class LibraryUI {
 
                     // Add the book to the database and update the table
                     libraryDataBase.dbAddBook(book);
-                    tablemodel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())}); //Add new data to table
+                    tableModel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())}); //Add new data to table
 
                     // Switch back to the search screen
                     card.show(cardContainer, "searchScreen");
@@ -982,8 +1090,10 @@ public class LibraryUI {
     }
 
 
-    /*TODO: Move this logic into a button*/
+    //creates a page where users can return books
     public JPanel createReturnBookScreen(){
+        //TODO:change this logic to allow the user to select what books they want to return
+
         // Create a panel for the returned books section
         JPanel returnedBooksPanel = new JPanel(new GridBagLayout());
         returnedBooksPanel.setBackground(Color.WHITE);
@@ -1059,27 +1169,36 @@ public class LibraryUI {
 
     public void createDataBase() { // Creating the database from here
         libraryDataBase = new Tables();
+        File file = new File(JSON_FILE_PATH);
+        if (!file.exists()) {
 
-        // Adding books
-        backend.Book book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding", "Hancock" , 23214, false, null);
-        libraryDataBase.dbAddBook(book);
+            // Adding books
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "Harry Potter and the Chamber of Secrets", "J.K. Rowling", 34587, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Hunger Games", "Suzanne Collins", 76459, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "1984", "George Orwell", 58320, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "To Kill a Mockingbird", "Harper Lee", 49275, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Great Gatsby", "F. Scott Fitzgerald", 86543, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "Pride and Prejudice", "Jane Austen", 23498, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Lord of the Rings", "J.R.R. Tolkien", 67932, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Catcher in the Rye", "J.D. Salinger", 43876, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "The Da Vinci Code", "Dan Brown", 54782, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "Brave New World", "Aldous Huxley", 65890, false, null));
+            libraryDataBase.dbAddBook(new backend.Book(backend.Book.BookStatus.AVAILABLE, "Animal Farm", "George Orwell", 32789, false, null));
 
-        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding1", "Hancock1" , 232142, false, null);
-        libraryDataBase.dbAddBook(book);
 
-        book = new backend.Book(backend.Book.BookStatus.AVAILABLE, "RedRiding2", "Hancock2" , 232141, false, null);
-        libraryDataBase.dbAddBook(book);
+            // Hardcoding users
+            Date currentDate = new Date();
 
-        // Hardcoding users
-        Date currentDate = new Date();
+            // Creating two patrons
+            hardcodePatron(1, "Default Patron 1", "patron1@example.com", "Pass", currentDate);
+            hardcodePatron(2, "Default Patron 2", "patron2@example.com", "Pass", currentDate);
 
-        // Creating two patrons
-        hardcodePatron(1, "Default Patron 1", "patron1@example.com", "Pass", currentDate);
-        hardcodePatron(2, "Default Patron 2", "patron2@example.com", "Pass", currentDate);
+            // Creating two librarians
+            hardcodeLibrarian(3, "Default Librarian 1", "librarian1@example.com", "Pass", currentDate);
+            hardcodeLibrarian(4, "Default Librarian 2", "librarian2@example.com", "Pass", currentDate);
 
-        // Creating two librarians
-        hardcodeLibrarian(3, "Default Librarian 1", "librarian1@example.com", "Pass", currentDate);
-        hardcodeLibrarian(4, "Default Librarian 2", "librarian2@example.com", "Pass", currentDate);
+            saveDatabase();
+        }
     }
 
     // Helper method to create and add a loggedInPage for a given user
@@ -1101,7 +1220,20 @@ public class LibraryUI {
         addLoggedInPageForUser(librarian);
     }
 
+    // Load data from JSON file
+    private void loadDatabase() {
+        File jsonFile = new File(JSON_FILE_PATH);
+        if (jsonFile.exists()) {
+            libraryDataBase.loadFromJSON(JSON_FILE_PATH);
+        } else {
+            createDataBase(); // Call only if the JSON file does not exist
+        }
+    }
 
+    // Save data to JSON file
+    private void saveDatabase() {
+        libraryDataBase.saveToJSON(JSON_FILE_PATH);
+    }
 
     public static void main(String[] args) {
 

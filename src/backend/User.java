@@ -1,6 +1,7 @@
 package backend;
 
 import java.util.Date;
+import org.json.JSONObject;  // Import the JSONObject class
 
 public class User implements Searchable{
     private int userID;
@@ -17,6 +18,27 @@ public class User implements Searchable{
         this.email = email;
         this.password = password;
         this.dateJoined = dateJoined;
+    }
+
+    // Add toJSON method
+    public JSONObject toJSON() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userID", userID);
+        jsonObject.put("name", name);
+        jsonObject.put("email", email);
+        jsonObject.put("password", password);
+        jsonObject.put("dateJoined", dateJoined.getTime());  // Store date as long
+        return jsonObject;
+    }
+
+    // Add static fromJSON method
+    public static User fromJSON(JSONObject jsonObject) {
+        int userID = jsonObject.getInt("userID");
+        String name = jsonObject.getString("name");
+        String email = jsonObject.getString("email");
+        String password = jsonObject.getString("password");
+        Date dateJoined = new Date(jsonObject.getLong("dateJoined"));  // Convert long back to Date
+        return new User(userID, name, email, password, dateJoined);
     }
 
     public int getUserID() {
