@@ -55,6 +55,17 @@ public class Patron extends User{
         return overdueBooks;
     }
 
+    public List<Book> getCheckedOutBooks(Map<Integer, Book> books) {
+        List<Book> checkedOutBooks = new ArrayList<>();
+        for (Integer isbn : borrowedBooks) {
+            Book book = books.get(isbn);
+            if (book != null) {
+                checkedOutBooks.add(book);
+            }
+        }
+        return checkedOutBooks;
+    }
+
     public boolean hasOverdueBooks(){
 
         if(overdueBooks.isEmpty()){

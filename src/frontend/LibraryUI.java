@@ -838,6 +838,71 @@ public class LibraryUI {
         constraints.gridx = 2; // Adjust grid position as needed
         bufferPanel.add(removeBookButton, constraints);
 
+        // Create a 'Logout' button
+        JButton logoutButton = new JButton("Logout");
+        constraints.gridx = 4; // Adjust grid position as needed
+        constraints.gridy = 1; // Adjust grid position as needed
+        panel.add(logoutButton, constraints);
+
+        // Add action listener to the 'Logout' button
+        logoutButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Log out the user and show the sign-in screen
+                card.show(cardContainer, "signin");
+                // Optionally, reset any relevant fields or states
+            }
+        });
+
+        // Create a 'Delete Account' button
+        JButton deleteAccountButton = new JButton("Delete Account");
+        constraints.gridx = 5; // Adjust grid position as needed
+        constraints.gridy = 1; // Adjust grid position as needed
+        panel.add(deleteAccountButton, constraints);
+
+// Add action listener to the 'Delete Account' button
+        deleteAccountButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Confirmation dialog
+                int confirm = JOptionPane.showConfirmDialog(
+                        frame,
+                        "Are you sure you want to delete your account? This action cannot be undone.",
+                        "Confirm Account Deletion",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+                if (confirm == JOptionPane.YES_OPTION) {
+
+                    // Check if the user is a Patron and has books checked out
+                    User currentUser = libraryDataBase.getUser(currentUserID);
+                    if (currentUser instanceof Patron) {
+                        Patron patron = (Patron) currentUser;
+                        if (!patron.getCheckedOutBooks(libraryDataBase.getBooks()).isEmpty()) {
+                            JOptionPane.showMessageDialog(
+                                    frame,
+                                    "You cannot delete your account while you have books checked out.",
+                                    "Account Deletion Failed",
+                                    JOptionPane.ERROR_MESSAGE
+                            );
+                            return; // Stop if books are checked out
+                        }
+                    }
+
+                    // Proceed to delete the account
+                    libraryDataBase.dbRemoveUser(currentUser);
+                    JOptionPane.showMessageDialog(
+                            frame,
+                            "Your account has been successfully deleted.",
+                            "Account Deleted",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                    // Logging out the user
+                    card.show(cardContainer, "signin");
+                    // Optionally, reset any relevant fields or states
+                }
+            }
+        });
+
 
         // Add the buffer panel to the main panel
         constraints.gridx = 0; // Reset to align with the main panel
