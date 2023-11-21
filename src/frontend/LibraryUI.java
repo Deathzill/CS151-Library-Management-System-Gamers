@@ -33,7 +33,9 @@ public class LibraryUI {
     private JTextField filterText;
     private DefaultTableModel tableModel;
     private TableRowSorter<DefaultTableModel> rowSorter;
+    // Initializing buttons
     private JButton addBookButton;
+    private JButton removeBookButton;
     private JButton checkOutButton;
     private JButton returnButton;
     private backend.Tables libraryDataBase;
@@ -534,6 +536,7 @@ public class LibraryUI {
 
         boolean isLibrarian = user instanceof Librarian;
         addBookButton.setVisible(isLibrarian);
+        removeBookButton.setVisible(isLibrarian);
 
 
         // Wrapper panel for additional styling and layout
@@ -803,9 +806,21 @@ public class LibraryUI {
         panel.add(addBookButton, constraints);  //Add linked to sign in button. If backend.Patron don't show. If librarian show
 
         // Add the 'AddBook' Button to the buffer panel
-
         constraints.gridx = 3; // Adjust grid position as needed
         bufferPanel.add(addBookButton, constraints);
+
+        // Create 'RemoveBook' Button
+        this.removeBookButton = new JButton("Remove Book");
+        removeBookButton.setVisible(false); // Initially hidden, visible only to librarians
+        // Set the constraints for the 'Remove Book' button
+        constraints.gridx = 4; // Adjust the grid position as needed
+        constraints.gridy = 0; // Adjust the grid position as needed
+        bufferPanel.add(removeBookButton, constraints);
+
+        // Add the 'removeBook' Button to the buffer panel
+        constraints.gridx = 2; // Adjust grid position as needed
+        bufferPanel.add(removeBookButton, constraints);
+
 
         // Add the buffer panel to the main panel
         constraints.gridx = 0; // Reset to align with the main panel
@@ -846,6 +861,23 @@ public class LibraryUI {
                 table.clearSelection();
             }
         });
+
+        removeBookButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                int[] rows = table.getSelectedRows();
+                for (int i = 0; i < rows.length; i++) {
+                    int isbn = Integer.parseInt((String) tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2));
+                    boolean removed = libraryDataBase.dbRemoveBook(isbn);
+                    if (removed) {
+                        tableModel.removeRow(table.convertRowIndexToModel(rows[i]));
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Book does not exist or cannot be removed", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
+
+
 
         // Add action listener to the 'Logout' button
         logoutFromTableButton.addActionListener(new ActionListener() {

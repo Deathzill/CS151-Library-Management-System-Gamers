@@ -46,9 +46,15 @@ public class Tables {
     }
 
     // Method to remove a backend.Book by ISBN
-    public void dbRemoveBook(Book book) {
-        books.remove(book.getISBN());
+    public boolean dbRemoveBook(int isbn) {
+        Book book = books.get(isbn);
+        if (book != null) {
+            books.remove(isbn);
+            return true; // Book successfully removed
+        }
+        return false; // Book not removed (doesn't exist or is checked out)
     }
+
 
     // Method to add a backend.User
     public void dbAddUser(User user) {

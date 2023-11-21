@@ -17,7 +17,7 @@ public class Librarian extends User{
     }
 
 
-    public void removeBook(Book book){
+    public void removeBook(int book){
         this.getData().dbRemoveBook(book); //need this implemented -> Munkh
     }
 
