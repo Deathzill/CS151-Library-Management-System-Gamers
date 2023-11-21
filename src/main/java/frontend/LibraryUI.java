@@ -1,9 +1,6 @@
 package frontend;
 
-import backend.Librarian;
-import backend.Patron;
-import backend.Tables;
-import backend.User;
+import backend.*;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -47,7 +44,7 @@ public class LibraryUI {
         // Initialize cardContainer first
         cardContainer = new JPanel(new CardLayout());
 
-        // Initialize libraryDataBase
+//        // Initialize libraryDataBase
         libraryDataBase = new Tables();
 
         // Initialize buttons here before they are used in any method
@@ -395,17 +392,6 @@ public class LibraryUI {
         constraints.ipady = 1;
         constraints.gridx = 1;
         constraints.gridy = 1;
-        JButton logoutButton = new JButton("Logout");
-
-        logoutButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                card.show(cardContainer, "signin");
-            }
-        });
-
-        loggedIn.add(logoutButton, constraints);
-
-        usernameScreen.add(loggedIn, "loginUsername");
 
         // Event listener for the "Create Account" button
         createAccount.addActionListener(new ActionListener() {
@@ -665,9 +651,9 @@ public class LibraryUI {
         tableModel.addColumn("ISBN");
 
         // Populate the table with book data from the database
-        Map<Integer, backend.Book> myMap = libraryDataBase.getBooks();
-        backend.Book book;
-        for(Map.Entry<Integer, backend.Book> entry : myMap.entrySet()){ //Populating table with data
+        Map<Integer, Book> myMap = libraryDataBase.getBooks();
+        Book book;
+        for(Map.Entry<Integer, Book> entry : myMap.entrySet()){ //Populating table with data
             book = entry.getValue();
             tableModel.addRow(new Object[]{book.getTitle(), book.getAuthor(), Integer.toString(book.getISBN())});
         }
@@ -740,7 +726,7 @@ public class LibraryUI {
                 unavailiableBook.append("Unavailiable: ");
 
                 // Retrieve the map of books from the database
-                Map<Integer, backend.Book> map = libraryDataBase.getBooks();
+                Map<Integer, Book> map = libraryDataBase.getBooks();
 
                 // Retrieve the current user
                 User user = libraryDataBase.getUser(currentUserID);
@@ -769,7 +755,7 @@ public class LibraryUI {
                             patron.borrowBook(map, Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
 
                             // Update the book's status in the database as checked out
-                            backend.Book book = new backend.Book(Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
+                            Book book = new Book(Integer.parseInt((String)tableModel.getValueAt(table.convertRowIndexToModel(rows[i]), 2)));
                             libraryDataBase.checkOutBook(book);
                         }
                         else{
@@ -845,11 +831,15 @@ public class LibraryUI {
         panel.add(logoutButton, constraints);
 
         // Add action listener to the 'Logout' button
+        /*REAL ONE*/
         logoutButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Log out the user and show the sign-in screen
                 card.show(cardContainer, "signin");
-                // Optionally, reset any relevant fields or states
+                text.setText("");
+                text2.setText("");
+                table.clearSelection();
+                filterText.setText("");
             }
         });
 
@@ -922,28 +912,6 @@ public class LibraryUI {
         });
 
 
-        // Create a 'Logout' button
-        JButton logoutFromTableButton = new JButton("Logout");
-        constraints.ipadx = 5;  // Padding in x direction
-        constraints.gridx = 3;  // Position on x-axis
-        constraints.gridy = 1;  // Position on y-axis
-        constraints.anchor = GridBagConstraints.FIRST_LINE_END; // Align to the end of the first line
-
-        // Add the 'Logout' button to the panel
-        panel.add(logoutFromTableButton, constraints);
-
-        // Add action listener to the 'Add Book' button
-        addBookButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // On clicking 'Add Book', switch to the 'addBook' card in the CardLayout
-                card.show(cardContainer, "addBook");
-                // Clear any text and selections from the search screen
-                text.setText("");
-                text2.setText("");
-                table.clearSelection();
-            }
-        });
-
         removeBookButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 int[] rows = table.getSelectedRows();
@@ -956,20 +924,6 @@ public class LibraryUI {
                         JOptionPane.showMessageDialog(frame, "Book does not exist or cannot be removed", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
-            }
-        });
-
-
-
-        // Add action listener to the 'Logout' button
-        logoutFromTableButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                // On clicking 'Logout', switch back to the sign-in card
-                card.show(cardContainer, "signin");
-                // Clear any text and selections from the search screen
-                text.setText("");
-                text2.setText("");
-                table.clearSelection();
             }
         });
 
