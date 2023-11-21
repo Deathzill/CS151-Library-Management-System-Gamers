@@ -50,6 +50,12 @@ public class LibraryUI {
         // Initialize libraryDataBase
         libraryDataBase = new Tables();
 
+        // Initialize buttons here before they are used in any method
+        this.checkOutButton = new JButton("Check Out");
+        this.returnButton = new JButton("Return");
+        this.addBookButton = new JButton("Add Book");
+        this.removeBookButton = new JButton("Remove Book");
+
         // Now call createDataBase
         this.createDataBase();
 
@@ -59,7 +65,7 @@ public class LibraryUI {
         // Retrieve the CardLayout instance from cardContainer
         card = (CardLayout)(cardContainer.getLayout());
 
-        frame = new JFrame("Social Network - Sign In Page");
+        frame = new JFrame("Library Management System");
         frame.setLayout(new BorderLayout());
         frame.setSize(900, 600);
         frame.setLocationRelativeTo(null);
@@ -71,7 +77,6 @@ public class LibraryUI {
 
         cardContainer.add(createdSignInPage, "signin");
         cardContainer.add(createdSignUpPage, "signUpPage");
-
 
         // Add other pages
         cardContainer.add(this.createSearchScreen(), "searchScreen");
@@ -92,6 +97,7 @@ public class LibraryUI {
             }
         });
     }
+
 
 
     public JPanel createSignInPage(){
@@ -735,6 +741,17 @@ public class LibraryUI {
 
                 // Retrieve the map of books from the database
                 Map<Integer, backend.Book> map = libraryDataBase.getBooks();
+
+                // Retrieve the current user
+                User user = libraryDataBase.getUser(currentUserID);
+
+                // Check if the user is a Patron and has overdue books
+                if (user instanceof Patron patron) {
+                    if (!patron.getOverdueBooks(libraryDataBase.getBooks()).isEmpty()) {
+                        JOptionPane.showMessageDialog(frame, "You cannot check this book out as you have one or more overdue books", "Overdue Books", JOptionPane.ERROR_MESSAGE);
+                        return; // Stop the method if there are overdue books
+                    }
+                }
 
                 if(rows.length <= 5){ //Requirement that only a max of 5 books can be checked out. Exception can be created/handled here
                     for(int i = 0; i < rows.length; i++){

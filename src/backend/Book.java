@@ -88,6 +88,19 @@ public class Book implements Borrowable{
         this.searchBook = searchBook;
     }
 
+    public boolean isOverdue() {
+        if (dueDate == null) {
+            // If there is no due date, the book cannot be overdue
+            return false;
+        }
+
+        // Get the current date
+        Date currentDate = new Date();
+
+        // Check if the current date is after the due date
+        return currentDate.after(dueDate);
+    }
+
     public void checkIn(){
         status = BookStatus.AVAILABLE;
         this.dueDate = null;

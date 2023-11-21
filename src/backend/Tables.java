@@ -116,6 +116,16 @@ public class Tables {
         else return false;
     }
 
+    //check if book is overdue by ISBN
+    public boolean dbIsOverdue(int ISBN) {
+        Book book = books.get(ISBN);
+        if (book != null && book.isCheckedOut()) {
+            return book.isOverdue();
+        }
+        return false; // If the book is not found or is not checked out, it is not overdue
+    }
+
+
     // Method to save data to JSON file
     public void saveToJSON(String filename) {
         JSONObject data = new JSONObject();
