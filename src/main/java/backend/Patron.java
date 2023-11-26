@@ -75,30 +75,46 @@ public class Patron extends User{
         return true;
     }
 
-    // Override toJSON method
+    // Override toJSON method from User class for Patron
     @Override
     public JSONObject toJSON() {
-        JSONObject jsonObject = super.toJSON();  // Call User's toJSON
+        // Call toJSON from the User class to get basic user details
+        JSONObject jsonObject = super.toJSON();
+
+        // Add Patron-specific details: list of borrowed and overdue books
+        // Convert the list of borrowed books to a JSON array
         jsonObject.put("borrowedBooks", new JSONArray(borrowedBooks));
+
+        // Convert the list of overdue books to a JSON array
         jsonObject.put("overdueBooks", new JSONArray(overdueBooks));
+
+        // Return the extended JSON object with Patron details
         return jsonObject;
     }
 
-    // Add static fromJSON method
+
+    // Static method to create a Patron object from a JSON object
     public static Patron fromJSON(JSONObject jsonObject) {
-        User user = User.fromJSON(jsonObject); // Construct User part
+        // First, construct the User part of the Patron using User.fromJSON
+        User user = User.fromJSON(jsonObject);
+
+        // Create a new Patron using the User part
         Patron patron = new Patron(user.getUserID(), user.getName(), user.getEmail(), user.getPassword(), user.getDateJoined());
 
+        // Extract and process the array of borrowedBooks IDs
         JSONArray borrowedBooksArray = jsonObject.getJSONArray("borrowedBooks");
         for (int i = 0; i < borrowedBooksArray.length(); i++) {
-            patron.borrowedBooks.add(borrowedBooksArray.getInt(i));
+            patron.borrowedBooks.add(borrowedBooksArray.getInt(i)); // Add each borrowed book ID to Patron's list
         }
 
+        // Extract and process the array of overdueBooks titles
         JSONArray overdueBooksArray = jsonObject.getJSONArray("overdueBooks");
         for (int i = 0; i < overdueBooksArray.length(); i++) {
-            patron.overdueBooks.add(overdueBooksArray.getString(i));
+            patron.overdueBooks.add(overdueBooksArray.getString(i)); // Add each overdue book title to Patron's list
         }
 
+        // Return the fully constructed Patron object
         return patron;
     }
+
 }
