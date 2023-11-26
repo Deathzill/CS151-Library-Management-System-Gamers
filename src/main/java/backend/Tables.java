@@ -132,43 +132,52 @@ public class Tables {
         JSONArray usersArray = new JSONArray();
         JSONArray booksArray = new JSONArray();
 
+        // Loop through all users and convert them to JSON objects
         for (User user : users.values()) {
-            JSONObject userJson = user.toJSON();
-            userJson.put("userType", user.getClass().getSimpleName());
-            usersArray.put(userJson);
+            JSONObject userJson = user.toJSON(); // Convert user to JSON
+            userJson.put("userType", user.getClass().getSimpleName()); // Add the user type information
+            usersArray.put(userJson); // Add to users JSON array
         }
 
+        // Loop through all books and convert them to JSON objects
         for (Book book : books.values()) {
-            booksArray.put(book.toJSON());
+            booksArray.put(book.toJSON()); // Convert book to JSON and add to books JSON array
         }
 
+        // Combine users and books into one JSON object
         data.put("users", usersArray);
         data.put("books", booksArray);
 
+        // Write the combined JSON object to the specified file
         try (FileWriter file = new FileWriter(filename)) {
-            file.write(data.toString(4));
+            file.write(data.toString(4)); // Write JSON with indentation for readability
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Handle any IO exceptions
         }
     }
+
 
     // Method to load data from JSON file
     public void loadFromJSON(String filename) {
         try {
+            // Read the content of the file
             String content = new String(Files.readAllBytes(Paths.get(filename)));
             if (content.trim().isEmpty()) {
-                throw new JSONException("File is empty");
+                throw new JSONException("File is empty"); // Throw an exception if file is empty
             }
 
+            // Parse the string content to a JSON object
             JSONObject data = new JSONObject(content);
             JSONArray usersArray = data.getJSONArray("users");
             JSONArray booksArray = data.getJSONArray("books");
 
+            // Process each user in the JSON array
             for (int i = 0; i < usersArray.length(); i++) {
                 JSONObject userJson = usersArray.getJSONObject(i);
                 String userType = userJson.getString("userType");
                 User user;
 
+                // Create different user types based on the userType field
                 if ("Patron".equals(userType)) {
                     user = Patron.fromJSON(userJson);
                     patrons.put(user.getUserID(), (Patron) user);
@@ -179,16 +188,17 @@ public class Tables {
                     user = User.fromJSON(userJson);
                 }
 
-                users.put(user.getUserID(), user);
+                users.put(user.getUserID(), user); // Add user to users map
             }
 
+            // Process each book in the JSON array
             for (int i = 0; i < booksArray.length(); i++) {
                 JSONObject bookJson = booksArray.getJSONObject(i);
                 Book book = Book.fromJSON(bookJson);
-                books.put(book.getISBN(), book);
+                books.put(book.getISBN(), book); // Add book to books map
             }
         } catch (IOException | JSONException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // Handle any IO or JSON exceptions
         }
     }
 }

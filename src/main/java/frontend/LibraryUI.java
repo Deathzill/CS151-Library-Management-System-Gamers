@@ -44,7 +44,7 @@ public class LibraryUI {
         // Initialize cardContainer first
         cardContainer = new JPanel(new CardLayout());
 
-//        // Initialize libraryDataBase
+        // Initialize libraryDataBase
         libraryDataBase = new Tables();
 
         // Initialize buttons here before they are used in any method

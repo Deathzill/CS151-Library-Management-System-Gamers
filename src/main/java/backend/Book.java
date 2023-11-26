@@ -119,28 +119,49 @@ public class Book implements Borrowable{
         isCheckedOut = true;
     }
 
-    // Add toJSON method
+    // Method to convert Book object to a JSON object
     public JSONObject toJSON() {
         JSONObject jsonObject = new JSONObject();
+        // Add the status of the book (AVAILABLE or CHECKED_OUT) as a string
         jsonObject.put("status", status.toString());
+
+        // Add book details: title, author, and ISBN
         jsonObject.put("title", title);
         jsonObject.put("author", author);
         jsonObject.put("ISBN", ISBN);
+
+        // Add a boolean flag indicating whether the book is checked out
         jsonObject.put("isCheckedOut", isCheckedOut);
-        jsonObject.put("dueDate", dueDate != null ? dueDate.getTime() : null);  // Convert Date to long
+
+        // Convert the dueDate from Date to long for JSON representation
+        // If dueDate is null, store null in JSON
+        jsonObject.put("dueDate", dueDate != null ? dueDate.getTime() : null);
+
+        // Return the constructed JSON object
         return jsonObject;
     }
 
-    // Add static fromJSON method
+
+    // Static method to create a Book object from a JSON object
     public static Book fromJSON(JSONObject jsonObject) {
+        // Convert the status string back to a BookStatus enum
         BookStatus status = BookStatus.valueOf(jsonObject.getString("status"));
+
+        // Extract book details: title, author, and ISBN
         String title = jsonObject.getString("title");
         String author = jsonObject.getString("author");
         int ISBN = jsonObject.getInt("ISBN");
-        boolean isCheckedOut = jsonObject.getBoolean("isCheckedOut");
-        Date dueDate = jsonObject.isNull("dueDate") ? null : new Date(jsonObject.getLong("dueDate"));  // Convert long back to Date
 
+        // Extract the isCheckedOut flag
+        boolean isCheckedOut = jsonObject.getBoolean("isCheckedOut");
+
+        // Convert the dueDate from long format back to Date object
+        // If dueDate is null in JSON, set it to null in the Book object
+        Date dueDate = jsonObject.isNull("dueDate") ? null : new Date(jsonObject.getLong("dueDate"));
+
+        // Create and return a new Book object using the extracted data
         return new Book(status, title, author, ISBN, isCheckedOut, dueDate);
     }
+
 
 }

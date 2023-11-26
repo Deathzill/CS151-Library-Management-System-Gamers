@@ -25,20 +25,32 @@ public class Librarian extends User{
         this.getData().dbRemoveUser(user); //need this implemented -> Munkh
     }
 
-    // Override toJSON method
+    // Override toJSON method from User class for Librarian
     @Override
     public JSONObject toJSON() {
-        JSONObject jsonObject = super.toJSON();  // Call User's toJSON
-        jsonObject.put("employmentDate", employmentDate.getTime()); // Store employmentDate as long
+        // Call toJSON from the User class to get basic user details
+        JSONObject jsonObject = super.toJSON();
+
+        // Add Librarian-specific detail: employmentDate
+        // Convert the employmentDate from Date to long for JSON representation
+        jsonObject.put("employmentDate", employmentDate.getTime());
+
+        // Return the extended JSON object with Librarian details
         return jsonObject;
     }
 
-    // Add static fromJSON method
-    public static Librarian fromJSON(JSONObject jsonObject) {
-        User user = User.fromJSON(jsonObject); // Construct User part
-        Date employmentDate = new Date(jsonObject.getLong("employmentDate")); // Convert long back to Date
 
+    // Static method to create a Librarian object from a JSON object
+    public static Librarian fromJSON(JSONObject jsonObject) {
+        // First, construct the User part of the Librarian using User.fromJSON
+        User user = User.fromJSON(jsonObject);
+
+        // Convert the employmentDate from long format back to Date object
+        Date employmentDate = new Date(jsonObject.getLong("employmentDate"));
+
+        // Create and return a new Librarian object using the User part and the employmentDate
         return new Librarian(user.getUserID(), user.getName(), user.getEmail(), user.getPassword(), user.getDateJoined(), employmentDate);
     }
+
 
 }
