@@ -27,18 +27,18 @@ public class Patron extends User{
         //}
     }
 
-    public List<String> returnBook(Map<Integer, Book> books){
-        //getData().checkInBook(book); //Use the backend.Book.CheckIn() method for this in Table
-        List<String> returnedBooks = new ArrayList<String>();
+    public String returnBook(Map<Integer, Book> books, int isbn) {
+        // Check if the book is actually borrowed
+        if (borrowedBooks.contains(isbn)) {
+            Book book = books.get(isbn);
+            if (book != null) {
+                book.checkIn(); // Mark the book as returned
+                borrowedBooks.remove(Integer.valueOf(isbn)); // Remove the book from the borrowed list
 
-        for(int i = 0; i < borrowedBooks.size(); i++){
-            returnedBooks.add(books.get(borrowedBooks.get(i)).getTitle());
-            books.get(borrowedBooks.get(i)).checkIn();
+                return book.getTitle(); // Return the title of the returned book
+            }
         }
-
-        borrowedBooks.clear();
-
-        return returnedBooks;
+        return null; // Return null if the book was not found or not borrowed
     }
 
     public List<String> getOverdueBooks(Map<Integer, Book> books){
