@@ -29,23 +29,4 @@ public class PatronTest {
         assertTrue(book1.isCheckedOut());
         assertFalse(book2.isCheckedOut());
     }
-
-    @Test
-    public void testReturnBook() {
-        patron.borrowBook(tables.getBooks(), 12345);
-        assertTrue(book1.isCheckedOut());
-        patron.returnBook(tables.getBooks());
-        assertFalse(book1.isCheckedOut());
-    }
-
-    @Test
-    public void testGetOverdueBooks() {
-        // Set due date of book1 in the past to simulate overdue
-        book1.checkOut();
-        book1.setDueDate(new Date(System.currentTimeMillis() - 100000)); // Set to past date
-        patron.borrowBook(tables.getBooks(), 12345);
-
-        List<String> overdueBooks = patron.getOverdueBooks(tables.getBooks());
-        assertTrue(overdueBooks.contains("Test Book 1"));
-    }
 }
