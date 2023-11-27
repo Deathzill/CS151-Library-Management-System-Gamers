@@ -1053,81 +1053,77 @@ public class LibraryUI {
 
 
     //creates a page where users can return books
-    public JPanel createReturnBookScreen(){
-        //TODO:change this logic to allow the user to select what books they want to return
+    public JPanel createReturnBookScreen() {
+        // Panel for the return books section
+        JPanel returnBooksPanel = new JPanel(new GridBagLayout());
+        returnBooksPanel.setBackground(Color.WHITE);
+        returnBooksPanel.setPreferredSize(new Dimension(400, 200));
+        returnBooksPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
 
-        // Create a panel for the returned books section
-        JPanel returnedBooksPanel = new JPanel(new GridBagLayout());
-        returnedBooksPanel.setBackground(Color.WHITE);
-        returnedBooksPanel.setPreferredSize(new Dimension(400, 200));
-        returnedBooksPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.BLACK, 2, true), BorderFactory.createLineBorder(Color.white, 3, true)));
+        // Table model for borrowed books
+        DefaultTableModel borrowedBooksModel = new DefaultTableModel();
+        borrowedBooksModel.addColumn("Title");
+        borrowedBooksModel.addColumn("ISBN");
+        JTable borrowedBooksTable = new JTable(borrowedBooksModel);
+        borrowedBooksTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
-        // Labels to display information about returned and overdue books
-        JLabel bookInformation = new JLabel();
-        JLabel overdueBooksInformation = new JLabel();
-
-        // Obtain current Patron information from the database
-        Patron patron = (Patron)libraryDataBase.getUser(currentUserID);
-
-        // Retrieve lists of overdue and returned books
-        List<String> overdueBooks = patron.getOverdueBooks(libraryDataBase.getBooks());
-        List<String> returnedBooks = patron.returnBook(libraryDataBase.getBooks()); //Can create too many overDue books exception here
-
-        // Building strings to display returned books
-        StringBuilder returned = new StringBuilder();
-        for(int i = 0; i < returnedBooks.size(); i++){
-            returned.append(returnedBooks.get(i));
-
-            if((i + 1) < returnedBooks.size()){
-                returned.append(", ");
-            }
+        // Populate the table with borrowed books data
+        Patron patron = (Patron) libraryDataBase.getUser(currentUserID);
+        List<Book> checkedOutBooks = patron.getCheckedOutBooks(libraryDataBase.getBooks());
+        for (Book book : checkedOutBooks) {
+            borrowedBooksModel.addRow(new Object[]{book.getTitle(), book.getISBN()});
         }
 
-        // Building strings to display overdue books
-        StringBuilder overdue = new StringBuilder();
-        if(!overdueBooks.isEmpty()){
-            for(int i = 0; i < overdueBooks.size(); i++){
-                overdue.append(overdueBooks.get(i));
+        // Scroll pane for the table
+        JScrollPane scrollPane = new JScrollPane(borrowedBooksTable);
+        borrowedBooksTable.setFillsViewportHeight(true);
 
-                if((i + 1) < overdueBooks.size()){
-                    overdue.append(", ");
-                }
-            }
-        }
-
-        // Setting text for the labels
-        bookInformation.setText("Returned Books: " + returned);
-        overdueBooksInformation.setText("Overdue Books: " + overdue);
-
-        // Setup layout constraints
-        GridBagConstraints constraints = new GridBagConstraints();
-
-        // Add the labels to the panel
-        returnedBooksPanel.add(bookInformation, constraints);
-        constraints.gridy = 1;
-        returnedBooksPanel.add(overdueBooksInformation, constraints);
-
-        // Wrapper panel for styling and layout
-        JPanel returnedBooksPanelWrapper = new JPanel(new GridBagLayout());
-        returnedBooksPanelWrapper.setBackground(Color.LIGHT_GRAY);
-        Color PURPLE = new Color(102, 0, 153);
-        returnedBooksPanelWrapper.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(PURPLE, 10, false), BorderFactory.createLineBorder(Color.LIGHT_GRAY, 3, true)));
-        returnedBooksPanelWrapper.add(returnedBooksPanel);
-
-        // Button to navigate to the next screen
-        JButton next = new JButton("Next");
-        constraints.gridy = 2;
-        returnedBooksPanel.add(next, constraints);
-
-        // Event listener for the next button
-        next.addActionListener(new ActionListener() {
+        // Button to return selected books
+        JButton returnSelectedBooksButton = new JButton("Return Selected Books");
+        returnSelectedBooksButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                card.show(cardContainer, "searchScreen");
+                int[] selectedRows = borrowedBooksTable.getSelectedRows();
+                for (int i = 0; i < selectedRows.length; i++) {
+                    int isbn = (Integer) borrowedBooksModel.getValueAt(selectedRows[i], 1);
+                    patron.returnBook(libraryDataBase.getBooks(), isbn);
+                    borrowedBooksModel.removeRow(selectedRows[i]);
+                }
             }
         });
 
-        return returnedBooksPanelWrapper;
+        // 'Back' button to go back to the previous screen (search screen in this case)
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                card.show(cardContainer, "searchScreen"); // Navigates back to the search screen
+            }
+        });
+
+        // Layout constraints for adding components to the panel
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.gridx = 0;
+        constraints.gridy = 0;
+        constraints.gridwidth = 2;
+        constraints.fill = GridBagConstraints.BOTH;
+        constraints.weightx = 1.0;
+        constraints.weighty = 1.0;
+        returnBooksPanel.add(scrollPane, constraints);
+
+        constraints.gridx = 0;
+        constraints.gridy = 1;
+        constraints.gridwidth = 1;
+        constraints.weightx = 0.5;
+        constraints.weighty = 0;
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        returnBooksPanel.add(returnSelectedBooksButton, constraints);
+
+        constraints.gridx = 1;
+        constraints.gridy = 1;
+        returnBooksPanel.add(backButton, constraints);
+
+        return returnBooksPanel;
     }
+
 
     public void createDataBase() { // Creating the database from here
         libraryDataBase = new Tables();
