@@ -146,6 +146,7 @@ Follow these steps to install the Library Management System:
 3. Ensure that Maven successfully imports and resolves all dependencies listed in the `pom.xml` file.
 
 ## Running the Application
+(this method of running is optional)
 To run the Library Management System, follow these steps:
 1. In your IDE, navigate to the `LibraryUI` class in the `frontend` package.
 2. Run the `main` method in the `LibraryUI` class.
@@ -153,9 +154,10 @@ To run the Library Management System, follow these steps:
 
 ## Running the application from JAR
 If you'd like to run the application from a JAR file instead
-1. Navigate to CS151-Library-Management-System-Gamers>out>artifacts>CS151_Library_Management_System_Gamers_jar
-2. Run the JAR
-3. This jar will create its own .json database independent from the one created if you run it manually. It will be stored in the same folder
+1. Build the project in your IDE
+2. Navigate to CS151-Library-Management-System-Gamers>out>artifacts>CS151_Library_Management_System_Gamers_jar
+3. Run the JAR
+4. This jar will create its own .json database independent from the one created if you run it manually. It will be stored in the same folder
 
 ## Usage
 Here's a quick guide to using the Library Management System:
@@ -172,7 +174,7 @@ Here's a quick guide to using the Library Management System:
 
 ### Account Management
 - **Signing Up:** Click the "Sign Up" button on the sign-in page and fill in your details.
-- **Important Detail:**When signing up, write down the username generated for you
+- **Important Detail:** When signing up, write down the username generated for you
 - **Deleting Account:** Click "Delete Account" in the main menu.
 
 ## Debugging
